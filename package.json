@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "bcrypt-pbkdf": "^1.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "md5": "^2.2.1",
+    "sequelize": "^5.8.10",
+    "sqlite3": "4.0.8"
+  },
+  "version": "0.0.1",
+  "name": "tast",
+  "description": "Petite description",
+  "main": "index.js",
+  "author": "Me",
+  "license": "MIT",
+  "scripts": {
+    "test": "node -r esm ./index.js",
+    "serve": "node -r esm ./server.js"
+  },
+  "devDependencies": {
+    "esm": "^3.2.25"
+  }
+}
