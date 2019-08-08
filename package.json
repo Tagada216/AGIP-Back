@@ -1,24 +1,24 @@
 {
   "dependencies": {
-    "bcrypt": "^3.0.6",
-    "bcrypt-pbkdf": "^1.0.2",
     "cors": "^2.8.5",
+    "eslint": "^6.0.1",
     "express": "^4.17.1",
-    "md5": "^2.2.1",
     "sequelize": "^5.8.10",
+    "sequelize-cli": "^5.5.0",
     "sqlite3": "4.0.8"
   },
   "version": "0.0.1",
-  "name": "tast",
+  "name": "API",
   "description": "Petite description",
   "main": "index.js",
-  "author": "Me",
+  "author": "A466935",
   "license": "MIT",
   "scripts": {
     "test": "node -r esm ./index.js",
-    "serve": "node -r esm ./server.js"
+    "serve": "node -r esm ./devrun.js"
   },
   "devDependencies": {
-    "esm": "^3.2.25"
+    "esm": "^3.2.25",
+    "nodemon": "^1.19.1"
   }
 }
