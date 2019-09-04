@@ -24,7 +24,7 @@ Il sera préférable de marquer :
 */
 
 export function MainCourante(id){ return `
-SELECT incident.id, group_concat(incident_reference.reference, '/') as 'references', 
+SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'references', 
 	incident_impact_enseigne.date_debut, incident_status.nom as status, incident_priorite.priorite, 
 	incident.description, incident.cause, incident.origine
 FROM (((incident_reference join incident on incident.id = incident_reference.incident_id) 
@@ -38,7 +38,7 @@ ORDER BY incident.id desc;
 }
 
 export function Applications(keyword){ return `
-SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')[' || coalesce(nom_usage, '') || ']' as 'keyword'
+SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'keyword'
 FROM application left join application_alias
 	on application.code_irt = application_alias.code_irt 
 	and application.trigramme = application_alias.trigramme

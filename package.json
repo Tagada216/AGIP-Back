@@ -5,7 +5,8 @@
     "express": "^4.17.1",
     "sequelize": "^5.8.10",
     "sequelize-cli": "^5.5.0",
-    "sqlite3": "4.0.8"
+    "sqlite3": "4.0.8",
+    "ssf": "^0.10.2"
   },
   "version": "0.0.1",
   "name": "API",
