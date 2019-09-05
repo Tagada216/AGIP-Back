@@ -24,16 +24,17 @@ Il sera préférable de marquer :
 */
 
 export function MainCourante(id){ return `
-SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'references', 
-	incident_impact_enseigne.date_debut, incident_status.nom as status, incident_priorite.priorite, 
-	incident.description, incident.cause, incident.origine
-FROM (((incident_reference join incident on incident.id = incident_reference.incident_id) 
+SELECT replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
+	incident_impact_enseigne.date_debut as 'Date de début', enseigne.nom as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
+	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.cause as Cause, incident.origine as Origine, 
+	incident.plan_action as "Plan d'action"
+FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_status on incident.status_id = incident_status.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
-	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id
+	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
-ORDER BY incident.id desc;
+ORDER BY incident.id asc;
 `
 }
 
