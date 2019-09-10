@@ -21,7 +21,8 @@ import {
 	getEnseignes,
 	createMainCourante,
 	getMainCourante,
-	getApp
+	getApp,
+	getFormatedMainCourante
 } from "./data"
 
 
@@ -41,6 +42,10 @@ app.post("/api/main-courante", (req, res) => {
 
 app.get("/api/main-courante", (req, res) => {
 	getMainCourante(res)
+})
+
+app.get("/api/main-courante/formated", (req, res) => {
+	getFormatedMainCourante(res)
 })
 
 app.get("/api/main-courante/:id", (req, res) => {

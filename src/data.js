@@ -109,6 +109,12 @@ export function getMainCourante(res, id) {
 	})
 }
 
+export function getFormatedMainCourante(res, id) {
+	sequelize.query(queries.FormatedMainCourante(id)).then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
+}
+
 export function getApp(res, keyword) {
 	sequelize.query(queries.Applications(keyword)).then(([results]) => {
 		//console.log({data: results})

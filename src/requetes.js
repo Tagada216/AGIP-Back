@@ -23,11 +23,31 @@ Il sera préférable de marquer :
 
 */
 
-export function MainCourante(id){ return `
-SELECT replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
+export function FormatedMainCourante(id){ return `
+SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	incident_impact_enseigne.date_debut as 'Date de début', enseigne.nom as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
 	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.cause as Cause, incident.origine as Origine, 
 	incident.plan_action as "Plan d'action"
+FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
+	join incident_status on incident.status_id = incident_status.id) 
+	join incident_priorite on incident.priorite_id = incident_priorite.id)
+	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+${(id === undefined ? "" : "WHERE incident.id = "+id)}
+GROUP BY incident_reference.incident_id
+ORDER BY incident.id asc;
+`
+}
+
+export function MainCourante(id){ return `
+SELECT incident.id, 
+	replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id', 
+	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'reference', 
+	replace(group_concat(DISTINCT enseigne.id),",","/") as 'id_enseigne', 
+	incident_impact_enseigne.date_debut as 'date_debut', 
+	incident.description as 'description', incident_priorite.id as 'priorite', 
+	incident_status.id as 'status', incident_impact_enseigne.date_fin as 'date_fin', 
+	incident_impact_enseigne.description_impact as 'impact', incident.cause as 'cause', 
+	incident.origine as 'origine', incident.plan_action as 'plan_action'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_status on incident.status_id = incident_status.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
