@@ -24,10 +24,10 @@ Il sera préférable de marquer :
 */
 
 export function MainCourante(id){ return `
-SELECT replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
+SELECT replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence',
 	incident_impact_enseigne.date_debut as 'Date de début', enseigne.nom as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
-	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.cause as Cause, incident.origine as Origine, 
-	incident.plan_action as "Plan d'action"
+	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.desc_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
+	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action"
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_status on incident.status_id = incident_status.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
