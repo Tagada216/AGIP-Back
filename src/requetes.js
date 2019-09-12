@@ -25,10 +25,12 @@ Il sera préférable de marquer :
 
 export function FormatedMainCourante(id){ return `
 SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
-	incident_impact_enseigne.date_debut as 'Date de début', 
+    incident_impact_enseigne.date_debut as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
 	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.desc_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
-	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action"
+	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action", incident_impact_enseigne.date_detection as 'Détection',
+	incident_impact_enseigne.date_com_tdc as 'Communication TDC', incident_impact_enseigne.date_qualif_p01 as 'Qualification P0 P1',
+	incident_impact_enseigne.date_premier_com as "1ere communication à l'enseigne"
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_status on incident.status_id = incident_status.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
@@ -48,7 +50,11 @@ SELECT incident.id,
 	incident.description as 'description', incident_priorite.id as 'priorite', 
 	incident_status.id as 'status', incident_impact_enseigne.date_fin as 'date_fin', 
 	incident_impact_enseigne.description_impact as 'impact', incident.cause as 'cause', 
-	incident.origine as 'origine', incident.plan_action as 'plan_action'
+	incident.origine as 'origine', incident.plan_action as 'plan_action', 
+	incident_impact_enseigne.date_detection as 'date_detection',
+	incident_impact_enseigne.date_com_tdc as 'date_communication_tdc', 
+	incident_impact_enseigne.date_qualif_p01 as 'date_qualif_p01',
+	incident_impact_enseigne.date_premier_com as 'date_premier_com'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_status on incident.status_id = incident_status.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
