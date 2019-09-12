@@ -89,7 +89,7 @@ app.get("/api/incidents/priorite", (req, res) => {
 	getIncPrio(res)
 })
 
-//tous les statuts
+//tous les statut
 app.get("/api/incidents/status", (req, res) => {
 	getIncStatus(res)
 })

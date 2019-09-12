@@ -11,6 +11,13 @@ const sequelize = new Sequelize({
 		timestamps: false
 	}
 })
+
+// Ajout d'un cache de la liste des application
+// Sinon la base met 10 à 30 secondes pour répondre
+var appCache
+sequelize.query(queries.AllApplications()).then(([results]) => {
+	appCache = {data: results}
+})
 ////////////////////////////////////////
 
 
@@ -116,14 +123,7 @@ export function getFormatedMainCourante(res, id) {
 }
 
 export function getApp(res, keyword) {
-	sequelize.query(queries.Applications(keyword)).then(([results]) => {
-		//console.log({data: results})
-
-		res.json({
-			data: results
-		})
-	})
-	
+	res.json(appCache)
 }
 
 
