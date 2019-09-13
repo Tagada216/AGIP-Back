@@ -17,7 +17,7 @@ import {
 	getIncPrio,
 	getIncRespEntity,
 	getIncRootCause,
-	getIncStatus,
+	getIncStatut,
 	getEnseignes,
 	createMainCourante,
 	getMainCourante,
@@ -36,6 +36,8 @@ app.listen(HTTP_PORT, () => {
 
 
 app.post("/api/main-courante", (req, res) => {
+	//console.log(req.body)
+	//res.json({i:""})
 	createMainCourante(res, req.body)
 })
 
@@ -55,7 +57,7 @@ app.get("/api/main-courante/:id", (req, res) => {
 
 
 app.get("/api/applications", (req, res) => {
-	console.log(req.query)
+	//console.log(req.query)
 	getApp(res, req.query.keyword)
 })
 
@@ -90,8 +92,8 @@ app.get("/api/incidents/priorite", (req, res) => {
 })
 
 //tous les statut
-app.get("/api/incidents/status", (req, res) => {
-	getIncStatus(res)
+app.get("/api/incidents/statut", (req, res) => {
+	getIncStatut(res)
 })
 
 //toutes les couches du SI
@@ -114,49 +116,3 @@ app.get("/api/enseignes/", (req, res) => {
 	getEnseignes(res)
 })
 ////////////////////////////////////////
-
-
-
-
-
-// app.get("/api/incident/:id", (req, res, next) => {
-//     var sql = "select * from incident where id = ?"
-//     var refSql = "select * from incident_reference"
-//     var params = [req.params.id]
-//     db.get(sql, params, (err, incident) => {
-//         if (err) {
-//           res.status(400).json({"error":err.message});
-//           return;
-//         }
-//         db.get
-//         res.json(JSON.parse(JSON.stringify(incident).replace(/\u0092/g,"'")))
-//       });
-// });
-
-
-// Root endpoint
-// app.get("/", (req, res) => {
-// 	getIncidents()
-// 	Changement.findAll().then(changements => {
-// 		// console.log(JSON.stringify(changements));
-
-// 		res.json(
-// 			changements
-// 		)
-
-// 	})
-// })
-
-// Changement.findAll().then(changements =>{
-// 	console.log(JSON.stringify(changements));
-// })
-
-
-// // Insert here other API endpoints
-
-// // Default response for any other request
-// app.use(function(req, res){
-//     res.status(404);
-// });
-
-// Mon commentaire

@@ -6,7 +6,7 @@ import * as queries from "./requetes.js"
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTest.sdb",
+	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTestKev.sdb",
 	define: {
 		timestamps: false
 	}
@@ -16,7 +16,7 @@ const sequelize = new Sequelize({
 // Sinon la base met 10 à 30 secondes pour répondre
 var appCache
 sequelize.query(queries.AllApplications()).then(([results]) => {
-	appCache = {data: results}
+	appCache = results
 })
 ////////////////////////////////////////
 
@@ -24,14 +24,14 @@ sequelize.query(queries.AllApplications()).then(([results]) => {
 
 export function getIncidents(res) {
 	sequelize.query(
-		"select incident.id, incident.description, incident.cause, incident.origine, incident.observations, incident.plan_action, incident_status.nom as status, " +
+		"select incident.id, incident.description, incident.cause, incident.origine, incident.observations, incident.plan_action, incident_statut.nom as statut, " +
 		"incident_priorite.priorite, incident_entite_responsable.nom as entite_responsable , incident_couche_si_impactee.nom as couche_si_impactee, " +
 		"incident_cause_racine.nom as cause__racine, incident.nombre_occurence, incident.crise_itim, incident.departement_responsable, " +
 		"'incident.sous-traitant_responsable' as sous_traitant_responsable, incident.service_metier, incident.famille_service_metier, incident.obsolescence, " +
 		"incident.pm_id, incident.probleme_id, incident.import_code_irt, incident.import_probleme_ref, incident.nom_app_impactante, " +
 		"changements.reference, changements.urgent, changements.classification " +
 		"from incident " +
-		"join incident_status on incident_status.id = incident.status_id " +
+		"join incident_statut on incident_statut.id = incident.statut_id " +
 		"join incident_priorite on incident_priorite.id = incident.priorite_id " +
 		"join incident_entite_responsable on incident_entite_responsable.id = incident.entite_responsable_id " +
 		"join incident_couche_si_impactee on incident_couche_si_impactee.id = incident.couche_si_impactee_id " +
@@ -44,14 +44,14 @@ export function getIncidents(res) {
 
 export function getIncident(idIncident, res) {
 	sequelize.query(
-		"select incident.id, incident.description, incident.cause, incident.origine, incident.observations, incident.plan_action, incident_status.nom as status, " +
+		"select incident.id, incident.description, incident.cause, incident.origine, incident.observations, incident.plan_action, incident_statut.nom as statut, " +
 		"incident_priorite.priorite, incident_entite_responsable.nom as entite_responsable , incident_couche_si_impactee.nom as couche_si_impactee, " +
 		"incident_cause_racine.nom as cause__racine, incident.nombre_occurence, incident.crise_itim, incident.departement_responsable, " +
 		"'incident.sous-traitant_responsable' as sous_traitant_responsable, incident.service_metier, incident.famille_service_metier, incident.obsolescence, " +
 		"incident.pm_id, incident.probleme_id, incident.import_code_irt, incident.import_probleme_ref, incident.nom_app_impactante, " +
 		"changements.reference, changements.urgent, changements.classification " +
 		"from incident " +
-		"join incident_status on incident_status.id = incident.status_id " +
+		"join incident_statut on incident_statut.id = incident.statut_id " +
 		"join incident_priorite on incident_priorite.id = incident.priorite_id " +
 		"join incident_entite_responsable on incident_entite_responsable.id = incident.entite_responsable_id " +
 		"join incident_couche_si_impactee on incident_couche_si_impactee.id = incident.couche_si_impactee_id " +
@@ -74,8 +74,8 @@ export function getIncPrio(res) {
 	})
 }
 
-export function getIncStatus(res) {
-	sequelize.query("select * from incident_status;").then(([results]) => {
+export function getIncStatut(res) {
+	sequelize.query("select * from incident_statut;").then(([results]) => {
 		res.json(results)
 	})
 }
@@ -129,35 +129,45 @@ export function getApp(res, keyword) {
 
 export function createMainCourante(res, input) {
 	var idIncident
-	// On insert dans la table incident en premier (clés étrangères obligent)
+
 	console.log(input)
+	console.log("\n")
 
-	sequelize.query(
-		"insert into incident(description, status_id, priorite_id)" +
-		" VALUES(\"" + input.infosIncident.description + "\", " + input.infosIncident.statut + ", " + input.infosIncident.priorite + ");"
-	).then(([, metadata]) => {
-		//On récupère l'ID de l'incident tout juste crée pour les insertions suivantes
+
+
+	// On insert dans la table incident en premier (clés étrangères obligent)
+	sequelize.query(queries.CreationIncident(input)).then(([, metadata]) => {
 		idIncident = metadata.lastID
+		//Insertion des références
+		sequelize.query(queries.CreationReferences(input, idIncident))
+		//Insertion des impacts enseignes
+		sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
 
-
-		//sequelize.query("insert into incident_application_impactante values(" + idIncident + ", \"" + input.impactsApplicatifs.applicationImpactee.codeIRT + "\", \"" + input.impactsApplicatifs.applicationImpactee.trigramme + "\");")
-		//sequelize.query("insert into incident_application_impactee values(" + idIncident + ", \"" + input.impactsApplicatifs.applicationImpactee.codeIRT + "\", \"" + input.impactsApplicatifs.applicationImpactee.trigramme + "\");")
-
-		// On insert toutes les référence de l'incident
-		for (const ref of input.references) {
-			sequelize.query("insert into incident_reference (reference, incident_id) values(\"" + ref.reference + "\", " + idIncident + ");")
-		}
-
-		// // On met les impacts 
-		for (const ensImpact of Object.values(input.impactsEnseignes)) {
-			if (ensImpact.estImpactee) {
-				sequelize.query("insert into incident_impact_enseigne(incident_id, enseigne_id, date_debut, description_impact) values(" + idIncident + ", " + ensImpact.id + ", \"" + input.horodatages.debutIncident + "\", \"" + input.infosIncident.impact + "\");")
-			}
-		}
-
-		//console.log(input.infosIncident.impact)
 	})
+	// sequelize.query(
+	// 	"insert into incident(description, statut_id, priorite_id, )" +
+	// 	" VALUES(\"" + input.infosIncident.description + "\", " + input.infosIncident.statut + ", " + input.infosIncident.priorite + ");"
+	// ).then(([, metadata]) => {
+	// 	//On récupère l'ID de l'incident tout juste crée pour les insertions suivantes
+	// idIncident = metadata.lastID
+
+	// 	// On insert toutes les référence de l'incident
+	// 	for (const ref of input.references) {
+	// 		sequelize.query("insert into incident_reference (reference, incident_id) values(\"" + ref.reference + "\", " + idIncident + ");")
+	// 	}
+
+	// 	// // On met les impacts 
+	// 	for (const ensImpact of Object.values(input.impactsEnseignes)) {
+	// 		if (ensImpact.estImpactee) {
+	// 			sequelize.query("insert into incident_impact_enseigne(incident_id, enseigne_id, date_debut, description_impact) values(" + idIncident + ", " + ensImpact.id + ", \"" + input.horodatages.debutIncident + "\", \"" + input.infosIncident.impact + "\");")
+	// 		}
+	// 	}
+
+	// })
 }
+
+
+
 
 
 
