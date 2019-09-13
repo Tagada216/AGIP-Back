@@ -36,8 +36,6 @@ app.listen(HTTP_PORT, () => {
 
 
 app.post("/api/main-courante", (req, res) => {
-	//console.log(req.body)
-	//res.json({i:""})
 	createMainCourante(res, req.body)
 })
 
@@ -57,7 +55,6 @@ app.get("/api/main-courante/:id", (req, res) => {
 
 
 app.get("/api/applications", (req, res) => {
-	//console.log(req.query)
 	getApp(res, req.query.keyword)
 })
 

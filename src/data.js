@@ -129,12 +129,7 @@ export function getApp(res, keyword) {
 
 export function createMainCourante(res, input) {
 	var idIncident
-
-	console.log(input)
-	console.log("\n")
-
-
-
+	
 	// On insert dans la table incident en premier (clés étrangères obligent)
 	sequelize.query(queries.CreationIncident(input)).then(([, metadata]) => {
 		idIncident = metadata.lastID
@@ -142,28 +137,7 @@ export function createMainCourante(res, input) {
 		sequelize.query(queries.CreationReferences(input, idIncident))
 		//Insertion des impacts enseignes
 		sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
-
 	})
-	// sequelize.query(
-	// 	"insert into incident(description, statut_id, priorite_id, )" +
-	// 	" VALUES(\"" + input.infosIncident.description + "\", " + input.infosIncident.statut + ", " + input.infosIncident.priorite + ");"
-	// ).then(([, metadata]) => {
-	// 	//On récupère l'ID de l'incident tout juste crée pour les insertions suivantes
-	// idIncident = metadata.lastID
-
-	// 	// On insert toutes les référence de l'incident
-	// 	for (const ref of input.references) {
-	// 		sequelize.query("insert into incident_reference (reference, incident_id) values(\"" + ref.reference + "\", " + idIncident + ");")
-	// 	}
-
-	// 	// // On met les impacts 
-	// 	for (const ensImpact of Object.values(input.impactsEnseignes)) {
-	// 		if (ensImpact.estImpactee) {
-	// 			sequelize.query("insert into incident_impact_enseigne(incident_id, enseigne_id, date_debut, description_impact) values(" + idIncident + ", " + ensImpact.id + ", \"" + input.horodatages.debutIncident + "\", \"" + input.infosIncident.impact + "\");")
-	// 		}
-	// 	}
-
-	// })
 }
 
 
