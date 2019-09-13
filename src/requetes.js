@@ -135,7 +135,7 @@ export function CreationImpactEnseignes(input, idIncident) {
 			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 
-		
+
 	return `
 INSERT INTO incident_impact_enseigne (
 	incident_id,
