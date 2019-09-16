@@ -23,16 +23,17 @@ Il sera préférable de marquer :
 
 */
 
-export function FormatedMainCourante(id){ return `
+export function FormatedMainCourante(id) {
+	return `
 SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
     incident_impact_enseigne.date_debut as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
-	incident_status.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.desc_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
+	incident_statut.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.description_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
 	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action", incident_impact_enseigne.date_detection as 'Détection',
 	incident_impact_enseigne.date_com_tdc as 'Communication TDC', incident_impact_enseigne.date_qualif_p01 as 'Qualification P0 P1',
 	incident_impact_enseigne.date_premier_com as "1ere communication à l'enseigne"
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
-	join incident_status on incident.status_id = incident_status.id) 
+	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
@@ -41,14 +42,15 @@ ORDER BY incident.id asc;
 `
 }
 
-export function MainCourante(id){ return `
+export function MainCourante(id) {
+	return `
 SELECT incident.id, 
 	replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id', 
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'reference', 
 	replace(group_concat(DISTINCT enseigne.id),",","/") as 'id_enseigne', 
 	incident_impact_enseigne.date_debut as 'date_debut', 
 	incident.description as 'description', incident_priorite.id as 'priorite', 
-	incident_status.id as 'status', incident_impact_enseigne.date_fin as 'date_fin', 
+	incident_statut.id as 'statut', incident_impact_enseigne.date_fin as 'date_fin', 
 	incident_impact_enseigne.description_impact as 'impact', incident.cause as 'cause', 
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
 	incident.plan_action as 'plan_action', 
@@ -57,7 +59,7 @@ SELECT incident.id,
 	incident_impact_enseigne.date_qualif_p01 as 'date_qualif_p01',
 	incident_impact_enseigne.date_premier_com as 'date_premier_com'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
-	join incident_status on incident.status_id = incident_status.id) 
+	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
@@ -66,8 +68,9 @@ ORDER BY incident.id asc;
 `
 }
 
-export function Applications(keyword){ return `
-SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'keyword'
+export function Applications(keyword) {
+	return `
+SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
 FROM application left join application_alias
 	on application.code_irt = application_alias.code_irt 
 	and application.trigramme = application_alias.trigramme
@@ -76,5 +79,72 @@ WHERE application.code_irt like "%${keyword}%"
 	or libelle_court like "%${keyword}%"
 	or nom like "%${keyword}%"
 	or nom_usage like "%${keyword}%";
+`
+}
+
+export function AllApplications() {
+	return `
+SELECT 
+	coalesce(application.trigramme,'') as trigramme, 
+	coalesce(application.code_irt,'') as code_irt,
+	coalesce(libelle_court,'') as libelle_court, 
+	coalesce(nom,'') as nom, 
+	coalesce(nom_usage,'') as nom_usage,
+	application.trigramme || '-' || 
+		application.code_irt || ' : ' || 
+		coalesce(libelle_court, '') || ' (' || 
+		coalesce(nom, '') || ')' || 
+		coalesce('[' || nom_usage || ']', '')  as display_name
+FROM application left join application_alias
+	on application.code_irt = application_alias.code_irt 
+	and application.trigramme = application_alias.trigramme;
+`
+}
+
+export function CreationIncident(input) {
+	return `
+INSERT INTO incident(
+	description, 
+	statut_id, 
+	priorite_id, 
+	is_contournement,
+	description_contournement,
+	is_faux_incident)
+VALUES(
+	"${input.description}",
+	${input.statut_id},
+	${input.priorite_id},
+	${input.is_contournement ? 1 : 0},
+	"${input.description_contournement}",
+	${input.is_faux_incident ? 1 : 0});
+`
+}
+
+export function CreationReferences(input, idIncident) {
+	return `
+INSERT INTO incident_reference (
+	reference, 
+	incident_id)
+VALUES
+	${input.references.map(ref => `("${ref.reference}", ${idIncident})`).join(",\n\t")};
+`
+}
+
+export function CreationImpactEnseignes(input, idIncident) {
+	let valuesString = input.enseigne_impactee
+		.map(
+			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+		.join(",\n\t")
+
+
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	description_impact,
+	date_debut,
+	date_fin)
+VALUES
+	${valuesString};
 `
 }
