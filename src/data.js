@@ -21,7 +21,6 @@ sequelize.query(queries.AllApplications()).then(([results]) => {
 ////////////////////////////////////////
 
 
-
 export function getIncidents(res) {
 	sequelize.query(
 		"select incident.id, incident.description, incident.cause, incident.origine, incident.observations, incident.plan_action, incident_statut.nom as statut, " +

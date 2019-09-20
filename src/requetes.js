@@ -1,3 +1,5 @@
+//import { SELECT } from "sequelize/types/lib/query-types";
+
 /*
 	Ce fichier compilera à terme toutes les requetes de l'API
 Cela permetra de séparer les requètes qui sont très verbeuses des appels à la base de données.
@@ -26,12 +28,12 @@ Il sera préférable de marquer :
 export function FormatedMainCourante(id) {
 	return `
 SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
-    incident_impact_enseigne.date_debut as 'Date de début', 
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
-	incident_statut.nom as Statut, incident_impact_enseigne.date_fin as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.description_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
-	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action", incident_impact_enseigne.date_detection as 'Détection',
-	incident_impact_enseigne.date_com_tdc as 'Communication TDC', incident_impact_enseigne.date_qualif_p01 as 'Qualification P0 P1',
-	incident_impact_enseigne.date_premier_com as "1ere communication à l'enseigne"
+	incident_statut.nom as Statut, strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_fin) as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.description_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
+	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action", strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_detection) as 'Détection',
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_com_tdc) as 'Communication TDC', strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_qualif_p01) as 'Qualification P0 P1',
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_premier_com) as "1ere communication à l'enseigne"
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
@@ -51,7 +53,7 @@ SELECT incident.id,
 	incident_impact_enseigne.date_debut as 'date_debut', 
 	incident.description as 'description', incident_priorite.id as 'priorite', 
 	incident_statut.id as 'statut', incident_impact_enseigne.date_fin as 'date_fin', 
-	incident_impact_enseigne.description_impact as 'impact', incident.cause as 'cause', 
+	incident_impact_enseigne.description_impact as 'description_impact', incident.cause as 'cause', 
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
 	incident.plan_action as 'plan_action', 
 	incident_impact_enseigne.date_detection as 'date_detection',
@@ -101,6 +103,10 @@ FROM application left join application_alias
 `
 }
 
+////////////////////////////////////
+///////////// AJOUT ////////////////
+////////////////////////////////////
+
 export function CreationIncident(input) {
 	return `
 INSERT INTO incident(
@@ -136,7 +142,6 @@ export function CreationImpactEnseignes(input, idIncident) {
 			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 
-
 	return `
 INSERT INTO incident_impact_enseigne (
 	incident_id,
@@ -146,5 +151,36 @@ INSERT INTO incident_impact_enseigne (
 	date_fin)
 VALUES
 	${valuesString};
+`
+}
+
+///////////////////////////////////////
+/////////////// UPDATE ////////////////
+///////////////////////////////////////
+
+export function UpdateIncident(input){
+	return `
+UPDATE incident
+SET description = "${input.description}", statut_id=${input.statut_id}, priorite_id=${input.priorite_id}, description_contournement="${input.description_contournement}", 
+ause="${input.cause}", origine="${input.origine}", plan_action="${input.planAction}", 
+action_retablissement="${input.actionRetablissement}", is_contournement=${input.is_contournement ? 1 : 0}, is_faux_incident=${input.is_faux_incident ? 1 : 0}
+WHERE id=(SELECT id FROM incident)
+`
+}
+
+export function UpdateReferences(input){
+	return `
+UPDATE incident_reference
+SET reference="${input.reference}"
+WHERE id=(SELECT incident_reference FROM incident_reference)
+`
+}
+
+export function UpdateImpactEnseignes(input, checkbox, datepicker) {
+	return `
+UPDATE incident_impact_enseigne
+SET enseigne_id=${checkbox.enseigne_id}, description_impact="${input.description_impact}", date_debut=${datepicker.date_debut}, date_fin=${datepicker.date_fin},
+date_detection=${datepicker.date_detection}, date_com_tdc=${datepicker.date_com_tdc}, date_qualif_p01=${datepicker.date_qualif_p01}, date_premier_com=${datepicker.date_premier_com}
+WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 `
 }
