@@ -22,7 +22,8 @@ import {
 	createMainCourante,
 	getMainCourante,
 	getApp,
-	getFormatedMainCourante
+	getFormatedMainCourante,
+	updateMainCourante
 } from "./data"
 
 
@@ -34,6 +35,9 @@ app.listen(HTTP_PORT, () => {
 })
 
 
+app.put("/api/main-courante", (req, res) => {
+	updateMainCourante(res, req.body)
+})
 
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
@@ -55,7 +59,7 @@ app.get("/api/main-courante/:id", (req, res) => {
 
 
 app.get("/api/applications", (req, res) => {
-	getApp(res, req.query.keyword)
+	getApp(res)
 })
 
 

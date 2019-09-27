@@ -1,4 +1,7 @@
 import * as queries from "./requetes.js"
+import chalk from "chalk"
+
+const log = console.log
 
 ////////////////////////////////////////
 // Initialisation de la base de données.
@@ -17,6 +20,11 @@ const sequelize = new Sequelize({
 var appCache
 sequelize.query(queries.AllApplications()).then(([results]) => {
 	appCache = results
+})
+
+var nombreCiFictif 
+sequelize.query("Select 'F' || max(CI)+1 as 'nbCiFictif' from (Select replace(code_irt,'F','') as 'CI' from application where code_irt like 'F%')").then(([results]) => {
+	nombreCiFictif = results[0].nbCiFictif
 })
 ////////////////////////////////////////
 
@@ -121,25 +129,97 @@ export function getFormatedMainCourante(res, id) {
 	})
 }
 
-export function getApp(res, keyword) {
+export function getApp(res) {
 	res.json(appCache)
 }
 
 
-export function createMainCourante(res, input) {
-	var idIncident
-	
+export async function createMainCourante(res, input) {
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 	// On insert dans la table incident en premier (clés étrangères obligent)
-	sequelize.query(queries.CreationIncident(input)).then(([, metadata]) => {
-		idIncident = metadata.lastID
-		//Insertion des références
-		sequelize.query(queries.CreationReferences(input, idIncident))
-		//Insertion des impacts enseignes
-		sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
-	})
+	const insertResult = await sequelize.query(queries.CreationIncident(input))
+	// On récupère l'id d el'incident nouvellement crée
+	const idIncident = insertResult[1].lastID
+
+	log(chalk.blue("\n"+"L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
+
+	// Insertion des références
+	log("\n"+chalk.yellow("Insertion des références"))
+	await sequelize.query(queries.CreationReferences(input, idIncident))
+
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
+
+	// Insertion des applications impactées
+	log("\n"+chalk.yellow("Insertion des applications impactées"))
+	for (const appImpactee of input.application_impactee) {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+	}
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+	res.sendStatus(200)
 }
 
+export async function updateMainCourante(res, input) {
 
+	//console.log(input)
+	console.log(queries.UpdateIncident(input))
+
+	// On prépare l'update des infos principales de l'incident
+	const updateInfosPrincipales = queries.UpdateIncident(input)
+
+	// on filtre les references qui n'ont pas d'id en base (les nouvelles references)
+	const nouvellesReferences = input.references.filter(ref => ref.reference_id === undefined)
+
+	// On cree la requete si il y a de nouvelles references sinon on met un commentaire dans la requete avec le double tiret "--"
+	const insertNouvellesReferences = nouvellesReferences.length == 0 ?
+		null :
+		queries.CreationReferences({
+			references: nouvellesReferences
+		}, input.incident_id)
+
+	// On prépare le delete des references
+	const referenceToDelete = queries.DeleteReferences(input)
+	
+	
+	//await sequelize.query(updateInfosPrincipales)
+	await sequelize.query(referenceToDelete)
+	if(insertNouvellesReferences) await sequelize.query(insertNouvellesReferences)
+
+
+
+	// const refInputIds = input.references.map(inputRef => "("+inputRef.reference_id+")").join()
+	// const refDbids = referenceInDB[0].map(dbRef => dbRef.id)
+	// const idsToDelete = refDbids.filter(x => !refInputIds.includes(x))
+
+	// console.log(refInputIds)
+	// console.log(refDbids)
+	// console.log()
+	
+	// console.log(idsToDelete)
+	
+
+	// //////////////
+	// // Update des references
+	// //////////////
+
+	
+	
+
+
+	// 	// on insert les nouvelles references précédemment filtrees en base
+	// 	// sequelize.query(queries.CreationReferences(nouvellesReferences, input.incident_id)).then((result) => {
+	
+	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
+	res.sendStatus(200)
+
+
+
+
+	// })
+
+}
 
 
 

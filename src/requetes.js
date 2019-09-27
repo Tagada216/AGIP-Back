@@ -29,10 +29,20 @@ export function FormatedMainCourante(id) {
 	return `
 SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
-	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', incident.description as Description, incident_priorite.priorite as Priorité, 
-	incident_statut.nom as Statut, strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_fin) as 'Date de fin', incident_impact_enseigne.description_impact as 'Impact', incident.description_contournement as 'Contournement', incident.cause as Cause, incident.origine as Origine, 
-	incident.action_retablissement as "Action de rétablissement", incident.plan_action as "Plan d'action", strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_detection) as 'Détection',
-	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_com_tdc) as 'Communication TDC', strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_qualif_p01) as 'Qualification P0 P1',
+	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', 
+	incident.description as Description, 
+	incident_priorite.priorite as Priorité, 
+	incident_statut.nom as Statut, 
+	coalesce(strftime("%d/%m/%Y %H:%M:%S",incident_impact_enseigne.date_fin), replace(replace(incident.is_faux_incident, 1, 'Faux incident'), 0, 'Incident en cours')) as 'Date de fin', 
+	incident_impact_enseigne.description_impact as 'Impact', 
+	incident.description_contournement as 'Contournement', 
+	incident.cause as Cause, 
+	incident.origine as Origine, 
+	incident.action_retablissement as "Action de rétablissement", 
+	incident.plan_action as "Plan d'action", 
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_detection) as 'Détection',
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_com_tdc) as 'Communication TDC', 
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_qualif_p01) as 'Qualification P0 P1',
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_premier_com) as "1ere communication à l'enseigne"
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
@@ -59,7 +69,10 @@ SELECT incident.id,
 	incident_impact_enseigne.date_detection as 'date_detection',
 	incident_impact_enseigne.date_com_tdc as 'date_communication_tdc', 
 	incident_impact_enseigne.date_qualif_p01 as 'date_qualif_p01',
-	incident_impact_enseigne.date_premier_com as 'date_premier_com'
+	incident_impact_enseigne.date_premier_com as 'date_premier_com',
+	incident.is_faux_incident as 'is_faux_incident',
+	incident.is_contournement as 'is_contournement', 
+	incident.description_contournement as 'description_contournement'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
@@ -96,10 +109,16 @@ SELECT
 		application.code_irt || ' : ' || 
 		coalesce(libelle_court, '') || ' (' || 
 		coalesce(nom, '') || ')' || 
-		coalesce('[' || nom_usage || ']', '')  as display_name
-FROM application left join application_alias
-	on application.code_irt = application_alias.code_irt 
-	and application.trigramme = application_alias.trigramme;
+		coalesce('[' || nom_usage || ']', '')  as display_name,
+	CPT
+FROM (application LEFT JOIN application_alias
+	ON application.code_irt = application_alias.code_irt 
+	AND application.trigramme = application_alias.trigramme)
+	LEFT JOIN (
+		SELECT application_trigramme as 'TRG', application_code_irt as 'IRT', count(*) as 'CPT' from incident_application_impactee 
+		GROUP BY application_trigramme, application_code_irt
+	) ON application.trigramme = TRG and application.code_irt = IRT
+ORDER BY cpt DESC
 `
 }
 
@@ -137,7 +156,7 @@ VALUES
 }
 
 export function CreationImpactEnseignes(input, idIncident) {
-	let valuesString = input.enseigne_impactee
+	const valuesString = input.enseigne_impactee
 		.map(
 			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
@@ -154,25 +173,71 @@ VALUES
 `
 }
 
+/*
+	Pour cette requete il peut sembler bizar dans le "else" d'insérer une entrée qui n'est pas sensé exister.
+	Cepandant cela est contré par un trigger crée dans la BDD qui crée l'application dans la table "application".
+	Ainsi, les clés étrangères sont réspectés
+	Qu'est-ce qu'un trigger : https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1973090-triggers
+	Doc SQLITE et trigger : https://sqlite.org/lang_createtrigger.html
+*/
+export function CreationApplicationsImpactees(application, idIncident){
+	console.log(application)
+	if (application.trigramme !== undefined && application.code_irt !== undefined){
+		return `
+INSERT INTO incident_application_impactee
+VALUES(
+	${idIncident}, 
+	"${application.code_irt}", 
+	"${application.trigramme}",
+	NULL);	
+`	
+	}
+	else
+		return `
+INSERT INTO incident_application_impactee
+	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
+`
+}
+
 ///////////////////////////////////////
 /////////////// UPDATE ////////////////
 ///////////////////////////////////////
 
-export function UpdateIncident(input){
+export function UpdateIncident(input) {
 	return `
 UPDATE incident
-SET description = "${input.description}", statut_id=${input.statut_id}, priorite_id=${input.priorite_id}, description_contournement="${input.description_contournement}", 
-ause="${input.cause}", origine="${input.origine}", plan_action="${input.planAction}", 
-action_retablissement="${input.actionRetablissement}", is_contournement=${input.is_contournement ? 1 : 0}, is_faux_incident=${input.is_faux_incident ? 1 : 0}
-WHERE id=(SELECT id FROM incident)
+SET 
+	description = "${input.description}", 
+	statut_id=${input.statut_id}, 
+	priorite_id=${input.priorite_id}, 
+	description_contournement="${input.description_contournement}", 
+	cause="${input.cause}", 
+	origine="${input.origine}", 
+	plan_action="${input.plan_action}", 
+	action_retablissement="${input.action_retablissement}", 
+	is_contournement=${input.is_contournement ? 1 : 0}, 
+	is_faux_incident=${input.is_faux_incident ? 1 : 0}
+WHERE id=${input.incident_id};
 `
 }
 
-export function UpdateReferences(input){
+export function GetReferences(idIncident) {
 	return `
-UPDATE incident_reference
-SET reference="${input.reference}"
-WHERE id=(SELECT incident_reference FROM incident_reference)
+SELECT incident_reference.id
+FROM incident_reference
+WHERE incident_reference.incident_id = ${idIncident}
+`
+}
+
+export function DeleteReferences(input) {
+	// On filtre les références ayant un ID en base et on regarde si il n'y a aucune valeur dans le tableau
+	const isNoOtherValues = input.references.filter(ref => ref.reference_id !== undefined).length == 0
+	return `
+DELETE
+FROM incident_reference
+WHERE incident_reference.incident_id = ${input.incident_id} AND incident_reference.id not in (
+	VALUES(-1)${isNoOtherValues ? "" : ","} ${input.references.filter(ref => ref.reference_id !== undefined).map(inputRef => "("+inputRef.reference_id+")").join()});
 `
 }
 
