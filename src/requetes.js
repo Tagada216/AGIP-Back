@@ -27,9 +27,11 @@ Il sera préférable de marquer :
 
 export function FormatedMainCourante(id) {
 	return `
-SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
+SELECT incident.id, 
+	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', 
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
 	incident.description as Description, 
 	incident_priorite.priorite as Priorité, 
 	incident_statut.nom as Statut, 
@@ -44,10 +46,14 @@ SELECT incident.id, replace(group_concat(DISTINCT incident_reference.reference),
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_com_tdc) as 'Communication TDC', 
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_qualif_p01) as 'Qualification P0 P1',
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_premier_com) as "1ere communication à l'enseigne"
-FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
+FROM (((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
-	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id) 
+	join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt 
+		and application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
@@ -56,7 +62,7 @@ ORDER BY incident.id asc;
 
 export function MainCourante(id) {
 	return `
-SELECT incident.id, 
+	SELECT incident.id, 
 	replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id', 
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'reference', 
 	replace(group_concat(DISTINCT enseigne.id),",","/") as 'id_enseigne', 
@@ -72,11 +78,18 @@ SELECT incident.id,
 	incident_impact_enseigne.date_premier_com as 'date_premier_com',
 	incident.is_faux_incident as 'is_faux_incident',
 	incident.is_contournement as 'is_contournement', 
-	incident.description_contournement as 'description_contournement'
+	incident.description_contournement as 'description_contournement',
+	replace(group_concat(DISTINCT application.trigramme || '-' || 
+		application.code_irt || ' : ' || 
+		coalesce(libelle_court, '') || ' (' || 
+		coalesce(application.nom, '') || ')'
+	),",","|||") as display_name
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+	join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+	join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
@@ -247,5 +260,49 @@ UPDATE incident_impact_enseigne
 SET enseigne_id=${checkbox.enseigne_id}, description_impact="${input.description_impact}", date_debut=${datepicker.date_debut}, date_fin=${datepicker.date_fin},
 date_detection=${datepicker.date_detection}, date_com_tdc=${datepicker.date_com_tdc}, date_qualif_p01=${datepicker.date_qualif_p01}, date_premier_com=${datepicker.date_premier_com}
 WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
+`
+}
+
+
+
+
+
+///////////////////////////////////////
+/////////////// Problèmes /////////////
+///////////////////////////////////////
+
+
+export function getProbs(){
+	return `
+SELECT probs.ref as 'Référence',
+	probs.titre as 'Titre',
+	probs.date_ouverture as "Date d'ouverture",
+	probs.statut as 'Statut',
+	probs.date_fin_previsionnelle as 'Date de fin prévisionelle',
+	probs.date_cloture as 'Date de cloture',
+	probs.code_irt as "Code IRT de l'application",
+	probs.enseigne_impactees as 'Enseignes',
+	probs.branche_rpa as 'Branche du RPA',
+	probs.service_rpa as 'Service du RPA',
+	probs.groupe_affectation_rpa_jump as "Groupe d'affectation JUMP du RPA ",
+	probs.priorite_incident as "Priorité de l'incident",
+	probs.risque_reproduction as 'Risque de reproduction',
+	probs.priorite_probleme_ouverture as "Priorité du problème à l'ouverture",
+	probs.resume as 'Résumé',
+	probs.impacts as 'Impacts',
+	probs.cause as "Cause de l'incident",
+	probs.origine as "Origine de l'incident",
+	probs.plan_action as "Plan d'action",
+	probs.plan_action_realise as "Etat du plan d'action",
+	probs.problem_manager as "Problem Manager",
+	probs.echeance as "Date d'échéance",
+	probs.descritpion as 'Description',
+	probs.description_costrat as 'Description COPIL/COSTRAT',
+	probs.action_costrat as 'Action COPIL/COSTRAT',
+	probs.couche_si as 'Couche du SI impactée',
+	probs.application,
+	probs.impact_itsm,
+	probs.cause_itsm
+From probs;
 `
 }

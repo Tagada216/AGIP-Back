@@ -22,10 +22,10 @@ sequelize.query(queries.AllApplications()).then(([results]) => {
 	appCache = results
 })
 
-var nombreCiFictif 
-sequelize.query("Select 'F' || max(CI)+1 as 'nbCiFictif' from (Select replace(code_irt,'F','') as 'CI' from application where code_irt like 'F%')").then(([results]) => {
-	nombreCiFictif = results[0].nbCiFictif
-})
+// var nombreCiFictif 
+// sequelize.query("Select 'F' || max(CI)+1 as 'nbCiFictif' from (Select replace(code_irt,'F','') as 'CI' from application where code_irt like 'F%')").then(([results]) => {
+// 	nombreCiFictif = results[0].nbCiFictif
+// })
 ////////////////////////////////////////
 
 
@@ -131,6 +131,20 @@ export function getFormatedMainCourante(res, id) {
 
 export function getApp(res) {
 	res.json(appCache)
+}
+
+
+export function getProbs(res){
+	sequelize.query(queries.getProbs()).then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
+}
+
+
+export function getCosipProbs(res){
+	sequelize.query("SELECT * FROM probs WHERE TITREPROBLEME LIKE '%[C]%'").then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
 }
 
 

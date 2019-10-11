@@ -5,6 +5,7 @@ var cors = require("cors")
 var app = express()
 // var db = require("./database.js")
 
+
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(cors())
@@ -23,7 +24,9 @@ import {
 	getMainCourante,
 	getApp,
 	getFormatedMainCourante,
-	updateMainCourante
+	updateMainCourante,
+	getProbs,
+	getCosipProbs
 } from "./data"
 
 
@@ -63,6 +66,13 @@ app.get("/api/applications", (req, res) => {
 })
 
 
+app.get("/api/probs", (req, res) => {
+	getProbs(res)
+})
+
+app.get("/api/probs/cosip", (req, res) => {
+	getCosipProbs(res)
+})
 
 ////////////////////////////////////////
 //Chemins d'obtention des incidents
@@ -117,3 +127,15 @@ app.get("/api/enseignes/", (req, res) => {
 	getEnseignes(res)
 })
 ////////////////////////////////////////
+
+
+
+//////////////////////
+// Truc temporaire pour le rapport COPER
+//////////////////////
+const file = "V:\\ITIM\\GSI\\TDC\\PROBLEMES\\03-Stockdespbs\\034-ExportITSM\\Programmes_sources\\Fiches_COPER - v2.1.xlsm"
+
+app.get("/api/probs/coper", (req,res) =>{
+	res.sendFile(file)
+})
+//////////////////////
