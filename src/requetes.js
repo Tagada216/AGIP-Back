@@ -62,7 +62,7 @@ ORDER BY incident.id asc;
 
 export function MainCourante(id) {
 	return `
-	SELECT incident.id, 
+SELECT incident.id, 
 	replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id', 
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'reference', 
 	replace(group_concat(DISTINCT enseigne.id),",","/") as 'id_enseigne', 
@@ -88,8 +88,8 @@ FROM ((((incident_reference join incident on incident.id = incident_reference.in
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
-	join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
+	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
