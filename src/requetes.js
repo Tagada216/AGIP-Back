@@ -56,7 +56,7 @@ FROM (((((incident_reference join incident on incident.id = incident_reference.i
 		and application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
-ORDER BY incident.id asc;
+ORDER BY incident.id desc;
 `
 }
 
