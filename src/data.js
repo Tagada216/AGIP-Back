@@ -75,6 +75,12 @@ export function getIncident(idIncident, res) {
 	})
 }
 
+export function getReference(res){
+	sequelize.query("select reference, incident_id from incident_reference;").then(([results])=>{
+		res.json(results)
+	})
+}
+
 export function getIncPrio(res) {
 	sequelize.query("select * from incident_priorite;").then(([results]) => {
 		res.json(results)
@@ -177,11 +183,10 @@ export async function createMainCourante(res, input) {
 
 export async function updateMainCourante(res, input) {
 
-	//console.log(input)
-	console.log(queries.UpdateIncident(input))
-
 	// On prépare l'update des infos principales de l'incident
 	const updateInfosPrincipales = queries.UpdateIncident(input)
+
+	const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigne(input)
 
 	// on filtre les references qui n'ont pas d'id en base (les nouvelles references)
 	const nouvellesReferences = input.references.filter(ref => ref.reference_id === undefined)
@@ -197,7 +202,8 @@ export async function updateMainCourante(res, input) {
 	const referenceToDelete = queries.DeleteReferences(input)
 	
 	
-	//await sequelize.query(updateInfosPrincipales)
+	await sequelize.query(updateInfosPrincipales)
+	await sequelize.query(updateIncidentImpactEnseigne)
 	await sequelize.query(referenceToDelete)
 	if(insertNouvellesReferences) await sequelize.query(insertNouvellesReferences)
 

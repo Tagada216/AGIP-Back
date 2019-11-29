@@ -135,6 +135,13 @@ ORDER BY cpt DESC
 `
 }
 
+export function AllReferences() {
+	return `
+SELECT reference, incident_id
+FROM incident_reference
+	`
+}
+
 ////////////////////////////////////
 ///////////// AJOUT ////////////////
 ////////////////////////////////////
@@ -220,18 +227,33 @@ INSERT INTO incident_application_impactee
 export function UpdateIncident(input) {
 	return `
 UPDATE incident
-SET 
-	description = "${input.description}", 
-	statut_id=${input.statut_id}, 
-	priorite_id=${input.priorite_id}, 
-	description_contournement="${input.description_contournement}", 
-	cause="${input.cause}", 
-	origine="${input.origine}", 
-	plan_action="${input.plan_action}", 
-	action_retablissement="${input.action_retablissement}", 
-	is_contournement=${input.is_contournement ? 1 : 0}, 
-	is_faux_incident=${input.is_faux_incident ? 1 : 0}
+SET
+	statut_id=${input.statut_id},
+	priorite_id=${input.priorite_id},
+	is_contournement=${input.is_contournement ? 1 : 0},
+	is_faux_incident=${input.is_faux_incident ? 1 : 0},
+	description="${input.description}",
+	description_contournement="${input.description_contournement}",
+	cause="${input.cause}",
+	origine="${input.origine}",
+	plan_action="${input.plan_action}",
+	action_retablissement="${input.action_retablissement}"
 WHERE id=${input.incident_id};
+`
+}
+
+export function UpdateIncidentImpactEnseigne(input) {
+	return `
+UPDATE incident_impact_enseigne
+SET 
+	description_impact="${input.description_impact}",
+	date_debut="${input.date_debut}",
+	date_fin="${input.date_fin}",
+	date_detection="${input.date_detection}",
+	date_com_tdc="${input.date_communication_TDC}",
+	date_qualif_p01="${input.date_qualification_p01}",
+	date_premier_com="${input.date_premiere_com}"
+WHERE incident_id=${input.incident_id};	
 `
 }
 
@@ -262,9 +284,6 @@ date_detection=${datepicker.date_detection}, date_com_tdc=${datepicker.date_com_
 WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 `
 }
-
-
-
 
 
 ///////////////////////////////////////

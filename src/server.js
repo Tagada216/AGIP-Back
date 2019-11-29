@@ -26,7 +26,8 @@ import {
 	getFormatedMainCourante,
 	updateMainCourante,
 	getProbs,
-	getCosipProbs
+	getCosipProbs,
+	getReference
 } from "./data"
 
 
@@ -46,7 +47,6 @@ app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
 })
 
-
 app.get("/api/main-courante", (req, res) => {
 	getMainCourante(res)
 })
@@ -58,6 +58,10 @@ app.get("/api/main-courante/formated", (req, res) => {
 app.get("/api/main-courante/:id", (req, res) => {
 	var params = [req.params.id]
 	getMainCourante(res, params[0])
+})
+
+app.get("/api/reference", (req, res) => {
+	getReference(res)
 })
 
 
