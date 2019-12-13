@@ -193,6 +193,55 @@ VALUES
 `
 }
 
+export function CreationIncidentMainCourante(input) {
+	return `
+INSERT INTO incident(
+	description, 
+	statut_id, 
+	priorite_id, 
+	is_contournement,
+	description_contournement,
+	is_faux_incident,
+	cause,
+	origine,
+	plan_action,
+	action_retablissement)
+VALUES(
+	"${input.description}",
+	${input.statut_id},
+	${input.priorite_id},
+	${input.is_contournement ? 1 : 0},
+	"${input.description_contournement}",
+	${input.is_faux_incident ? 1 : 0},
+	"${input.cause}",
+	"${input.origine}",
+	"${input.plan_action}",
+	"${input.action_retablissement}");
+`
+}
+
+export function CreationImpactEnseignesMainCourante(input, idIncident) {
+	const valuesString = input.enseigne_impactee
+		.map(
+			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+		.join(",\n\t")
+
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	description_impact,
+	date_debut,
+	date_detection,
+	date_com_tdc,
+	date_qualif_p01,
+	date_premier_com,
+	date_fin)
+VALUES
+	${valuesString};
+`
+}
+
 /*
 	Pour cette requete il peut sembler bizar dans le "else" d'insérer une entrée qui n'est pas sensé exister.
 	Cepandant cela est contré par un trigger crée dans la BDD qui crée l'application dans la table "application".
@@ -220,9 +269,40 @@ INSERT INTO incident_application_impactee
 `
 }
 
+export function DeleteIncidentApplicationImpactee(input)
+{
+	return `
+DELETE FROM incident_application_impactee
+WHERE incident_id=${input.incident_id};
+`
+}
+
+export function DeleteIncidentImpactEnseigne(input)
+{
+	return `
+DELETE FROM incident_impact_enseigne
+WHERE incident_id=${input.incident_id};
+`
+}
+
+export function DeleteIncidentReference(input){
+	return `
+DELETE FROM incident_reference
+WHERE incident_id=${input.incident_id};	
+`
+}
+
+export function DeleteIncident(input){
+	return `
+DELETE FROM incident
+WHERE id=${input.incident_id};	
+`
+}
+
 ///////////////////////////////////////
 /////////////// UPDATE ////////////////
 ///////////////////////////////////////
+
 
 export function UpdateIncident(input) {
 	return `

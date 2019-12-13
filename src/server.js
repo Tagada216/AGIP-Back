@@ -27,9 +27,10 @@ import {
 	updateMainCourante,
 	getProbs,
 	getCosipProbs,
-	getReference
+	getReference,
+	deleteIncident,
+	insertMainCourante
 } from "./data"
-
 
 // Définition du port du serveur
 var HTTP_PORT = 5000
@@ -38,6 +39,9 @@ app.listen(HTTP_PORT, () => {
 	console.log("Server running on port %PORT%".replace("%PORT%", HTTP_PORT))
 })
 
+app.delete("/api/main-courante", (req, res)=>{
+	deleteIncident(res, req.body)
+})
 
 app.put("/api/main-courante", (req, res) => {
 	updateMainCourante(res, req.body)
@@ -45,6 +49,10 @@ app.put("/api/main-courante", (req, res) => {
 
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
+})
+
+app.post("/api/insert-main-courante", (req, res) => {
+	insertMainCourante(res, req.body)
 })
 
 app.get("/api/main-courante", (req, res) => {

@@ -9,7 +9,7 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTestKev.sdb",
+	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTestKev - Copie.sdb",
 	define: {
 		timestamps: false
 	}
@@ -181,43 +181,84 @@ export async function createMainCourante(res, input) {
 	res.sendStatus(200)
 }
 
-export async function updateMainCourante(res, input) {
+export async function insertMainCourante(res, input) {
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION ---"))
+	// On insert dans la table incident en premier (clés étrangères obligent)
+	const insertResult = await sequelize.query(queries.CreationIncidentMainCourante(input))
+	// On récupère l'id d el'incident nouvellement crée
+	const idIncident = insertResult[1].lastID
 
+	log(chalk.blue("\n"+"L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
+
+	// Insertion des références
+	log("\n"+chalk.yellow("Insertion des références"))
+	await sequelize.query(queries.CreationReferences(input, idIncident))
+
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
+
+	// Insertion des applications impactées
+	log("\n"+chalk.yellow("Insertion des applications impactées"))
+	for (const appImpactee of input.application_impactee) {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+	}
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+	res.sendStatus(200)
+}
+
+export async function deleteIncident(res, input) {
+	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+	const deleteIncidentRef = queries.DeleteIncidentReference(input)
+	const deleteIncident = queries.DeleteIncident(input)
+
+	await sequelize.query(deleteIncidentAppImpactee)
+	await sequelize.query(deleteIncidentImpEns)
+	await sequelize.query(deleteIncidentRef)
+	await sequelize.query(deleteIncident)
+
+	res.sendStatus(200)
+}
+
+
+export async function updateMainCourante(res, input) {
 	// On prépare l'update des infos principales de l'incident
 	const updateInfosPrincipales = queries.UpdateIncident(input)
 
 	const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigne(input)
 
 	// on filtre les references qui n'ont pas d'id en base (les nouvelles references)
-	const nouvellesReferences = input.references.filter(ref => ref.reference_id === undefined)
+	//const nouvellesReferences = input.references.filter(ref => ref.reference_id === undefined)
 
 	// On cree la requete si il y a de nouvelles references sinon on met un commentaire dans la requete avec le double tiret "--"
-	const insertNouvellesReferences = nouvellesReferences.length == 0 ?
+	/*const insertNouvellesReferences = nouvellesReferences.length == 0 ?
 		null :
 		queries.CreationReferences({
 			references: nouvellesReferences
 		}, input.incident_id)
+	*/
 
 	// On prépare le delete des references
-	const referenceToDelete = queries.DeleteReferences(input)
-	
-	
+	//const referenceToDelete = queries.DeleteReferences(input)
+
 	await sequelize.query(updateInfosPrincipales)
 	await sequelize.query(updateIncidentImpactEnseigne)
-	await sequelize.query(referenceToDelete)
-	if(insertNouvellesReferences) await sequelize.query(insertNouvellesReferences)
+	//await sequelize.query(referenceToDelete)
+	//if(insertNouvellesReferences) await sequelize.query(insertNouvellesReferences)
 
 
 
-	// const refInputIds = input.references.map(inputRef => "("+inputRef.reference_id+")").join()
-	// const refDbids = referenceInDB[0].map(dbRef => dbRef.id)
-	// const idsToDelete = refDbids.filter(x => !refInputIds.includes(x))
+	//const refInputIds = input.references.map(inputRef => "("+inputRef.reference_id+")").join()
+	//const refDbids = referenceInDB[0].map(dbRef => dbRef.id)
+	//const idsToDelete = refDbids.filter(x => !refInputIds.includes(x))
 
-	// console.log(refInputIds)
-	// console.log(refDbids)
-	// console.log()
+	//console.log(refInputIds)
+	//console.log(refDbids)
+	//console.log()
 	
-	// console.log(idsToDelete)
+	//console.log(idsToDelete)
 	
 
 	// //////////////
@@ -229,7 +270,7 @@ export async function updateMainCourante(res, input) {
 
 
 	// 	// on insert les nouvelles references précédemment filtrees en base
-	// 	// sequelize.query(queries.CreationReferences(nouvellesReferences, input.incident_id)).then((result) => {
+	//sequelize.query(queries.CreationReferences(nouvellesReferences, input.incident_id)).then((result) => {
 	
 	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
 	res.sendStatus(200)
