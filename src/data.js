@@ -208,6 +208,15 @@ export async function insertMainCourante(res, input) {
 	res.sendStatus(200)
 }
 
+export async function insertImpactEnseigne(res, input) {
+	const insertResult = await sequelize.query(queries.CreationIncidentMainCourante(input))
+	const idIncident = insertResult[1].las
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
+}
+
+
 export async function deleteIncident(res, input) {
 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
@@ -225,9 +234,8 @@ export async function deleteIncident(res, input) {
 
 export async function updateMainCourante(res, input) {
 	// On prépare l'update des infos principales de l'incident
-	const updateInfosPrincipales = queries.UpdateIncident(input)
-
-	const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigne(input)
+	//const updateInfosPrincipales = queries.UpdateIncident(input)
+	//const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigne(input)
 
 	// on filtre les references qui n'ont pas d'id en base (les nouvelles references)
 	//const nouvellesReferences = input.references.filter(ref => ref.reference_id === undefined)
@@ -243,8 +251,8 @@ export async function updateMainCourante(res, input) {
 	// On prépare le delete des references
 	//const referenceToDelete = queries.DeleteReferences(input)
 
-	await sequelize.query(updateInfosPrincipales)
-	await sequelize.query(updateIncidentImpactEnseigne)
+	//await sequelize.query(updateInfosPrincipales)
+	//await sequelize.query(updateIncidentImpactEnseigne)
 	//await sequelize.query(referenceToDelete)
 	//if(insertNouvellesReferences) await sequelize.query(insertNouvellesReferences)
 
@@ -265,8 +273,45 @@ export async function updateMainCourante(res, input) {
 	// // Update des references
 	// //////////////
 
-	
-	
+
+	// Delete des informations à l'id de l'incident sélectionné
+	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+	const deleteIncidentRef = queries.DeleteIncidentReference(input)
+	const deleteIncident = queries.DeleteIncident(input)
+
+	await sequelize.query(deleteIncidentAppImpactee)
+	await sequelize.query(deleteIncidentImpEns)
+	await sequelize.query(deleteIncidentRef)
+	await sequelize.query(deleteIncident)
+
+
+	// Insert des modifications effectuées (il faudrait insert à l'id qui a servi pour le delete (si possible))	 
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION ---"))
+	// On insert dans la table incident en premier (clés étrangères obligent)
+	const insertResult = await sequelize.query(queries.CreationIncidentMainCourante(input))
+	// On récupère l'id d el'incident nouvellement crée
+	const idIncident = insertResult[1].lastID
+
+	log(chalk.blue("\n"+"L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
+
+	// Insertion des références
+	log("\n"+chalk.yellow("Insertion des références"))
+	await sequelize.query(queries.CreationReferences(input, idIncident))
+
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
+
+	// Insertion des applications impactées
+	log("\n"+chalk.yellow("Insertion des applications impactées"))
+	for (const appImpactee of input.application_impactee) {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+	}
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+
+
 
 
 	// 	// on insert les nouvelles references précédemment filtrees en base
@@ -281,8 +326,6 @@ export async function updateMainCourante(res, input) {
 	// })
 
 }
-
-
 
 
 // export const Changement = sequelize.define("changements", {

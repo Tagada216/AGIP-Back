@@ -29,7 +29,8 @@ import {
 	getCosipProbs,
 	getReference,
 	deleteIncident,
-	insertMainCourante
+	insertMainCourante,
+	insertImpactEnseigne
 } from "./data"
 
 // Définition du port du serveur
@@ -41,6 +42,10 @@ app.listen(HTTP_PORT, () => {
 
 app.delete("/api/main-courante", (req, res)=>{
 	deleteIncident(res, req.body)
+})
+
+app.post("api/main-courante-enseigne", (req, res) => {
+	insertImpactEnseigne(res, req.body)
 })
 
 app.put("/api/main-courante", (req, res) => {
@@ -139,7 +144,6 @@ app.get("/api/enseignes/", (req, res) => {
 	getEnseignes(res)
 })
 ////////////////////////////////////////
-
 
 
 //////////////////////
