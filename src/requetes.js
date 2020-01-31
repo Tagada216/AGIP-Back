@@ -405,3 +405,26 @@ SELECT probs.ref as 'Référence',
 From probs;
 `
 }
+
+
+
+
+
+
+///////////////////////////////////////
+/////////////// Stats /////////////////
+///////////////////////////////////////
+export function getOrigineIncMaj(){
+	return `
+SELECT inc_par_mois, nom, count(nom) as nombre
+FROM (
+	SELECT date(incident_impact_enseigne.date_debut, 'start of month') as inc_par_mois, incident_entite_responsable.nom
+	FROM incident
+		JOIN incident_entite_responsable ON incident.entite_responsable_id = incident_entite_responsable.id
+		JOIN incident_impact_enseigne ON incident.id = incident_impact_enseigne.incident_id
+		JOIN enseigne ON incident_impact_enseigne.enseigne_id = enseigne.id
+	WHERE enseigne.nom = 'BDDF' AND incident_impact_enseigne.gravite_averee = 'Elevé' AND date(incident_impact_enseigne.date_debut) > date('now', '-12 month')
+)
+GROUP BY inc_par_mois, nom	
+`
+}

@@ -328,6 +328,13 @@ export async function updateMainCourante(res, input) {
 }
 
 
+export async function statOrigineIncidentsMajeurs(res){
+	var test = await sequelize.query(queries.getOrigineIncMaj())
+	log(test)
+	res.json({})
+}
+
+
 // export const Changement = sequelize.define("changements", {
 // 	// attributes
 // 	reference: {

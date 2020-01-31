@@ -30,7 +30,8 @@ import {
 	getReference,
 	deleteIncident,
 	insertMainCourante,
-	insertImpactEnseigne
+	insertImpactEnseigne,
+	statOrigineIncidentsMajeurs
 } from "./data"
 
 // Définition du port du serveur
@@ -155,3 +156,13 @@ app.get("/api/probs/coper", (req,res) =>{
 	res.sendFile(file)
 })
 //////////////////////
+
+
+
+
+////////////////////////////////////////
+//Chemins d'obtention des stats
+////////////////////////////////////////
+app.get("/api/stat/orig-inc-maj", (req,res) =>{
+	statOrigineIncidentsMajeurs(res)
+})
