@@ -31,7 +31,9 @@ import {
 	deleteIncident,
 	insertMainCourante,
 	insertImpactEnseigne,
-	statOrigineIncidentsMajeurs
+	statOrigineIncidentsMajeurs,
+	createMainCouranteAgence,
+	updateMainCouranteAgence,
 } from "./data"
 
 // Définition du port du serveur
@@ -53,8 +55,16 @@ app.put("/api/main-courante", (req, res) => {
 	updateMainCourante(res, req.body)
 })
 
+app.put("/api/main-courante-agence", (req, res) => {
+	updateMainCouranteAgence(res, req.body)
+})
+
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
+})
+
+app.post("/api/main-courante-agence", (req, res) => {
+	createMainCouranteAgence(res, req.body)
 })
 
 app.post("/api/insert-main-courante", (req, res) => {

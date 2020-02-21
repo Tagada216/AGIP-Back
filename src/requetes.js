@@ -165,6 +165,27 @@ VALUES(
 `
 }
 
+export function CreationIncidentAgence(input) {
+	return `
+INSERT INTO incident(
+	description,
+	cause,
+	statut_id, 
+	priorite_id, 
+	is_contournement,
+	description_contournement,
+	is_faux_incident)
+VALUES(
+	"${input.description}",
+	"${input.cause}",
+	${input.statut_id},
+	${input.priorite_id},
+	${input.is_contournement ? 1 : 0},
+	"${input.description_contournement}",
+	${input.is_faux_incident ? 1 : 0});
+`
+}
+
 export function CreationReferences(input, idIncident) {
 	return `
 INSERT INTO incident_reference (
@@ -174,6 +195,18 @@ VALUES
 	${input.references.map(ref => `("${ref.reference}", ${idIncident})`).join(",\n\t")};
 `
 }
+
+export function CreationReferencesAgence(input, idIncident) {
+	return `
+INSERT INTO incident_reference (
+	reference, 
+	incident_id)
+VALUES(
+	"${input.references}",
+	${idIncident});
+`
+}
+
 
 export function CreationImpactEnseignes(input, idIncident) {
 	const valuesString = input.enseigne_impactee
@@ -190,6 +223,24 @@ INSERT INTO incident_impact_enseigne (
 	date_fin)
 VALUES
 	${valuesString};
+`
+}
+
+export function CreationImpactEnseignesAgence(input, idIncident) {
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	description_impact,
+	date_debut,
+	date_fin)
+VALUES(
+	${idIncident},
+	${input.enseigne_impactee},
+	"${input.description_impact}",
+	"${input.date_debut}",
+	${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""}
+);
 `
 }
 
@@ -239,6 +290,32 @@ INSERT INTO incident_impact_enseigne (
 	date_fin)
 VALUES
 	${valuesString};
+`
+}
+
+export function CreationImpactEnseignesMainCouranteAgence(input, idIncident) {
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	description_impact,
+	date_debut,
+	date_detection,
+	date_com_tdc,
+	date_qualif_p01,
+	date_premier_com,
+	date_fin)
+VALUES(
+	${idIncident},
+	${input.enseigne_impactee},
+	"${input.description_impact}",
+	"${input.date_debut}",
+	"${input.date_detection}",
+	"${input.date_communication_TDC}",
+	"${input.date_qualification_p01}",
+	"${input.date_premiere_com}",
+	${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""}
+);
 `
 }
 
