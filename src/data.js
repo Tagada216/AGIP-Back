@@ -1,6 +1,7 @@
 import * as queries from "./requetes.js"
 import chalk from "chalk"
 
+// Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
 
 ////////////////////////////////////////
@@ -17,10 +18,14 @@ const sequelize = new Sequelize({
 
 // Ajout d'un cache de la liste des application
 // Sinon la base met 10 à 30 secondes pour répondre
+// Dans les faits 
+
 var appCache
+log("\n"+chalk.yellow("Mise en cache des applications"))
 sequelize.query(queries.AllApplications()).then(([results]) => {
 	appCache = results
 })
+log("\n"+chalk.yellow("Mise en cache des applications"))
 
 // var nombreCiFictif 
 // sequelize.query("Select 'F' || max(CI)+1 as 'nbCiFictif' from (Select replace(code_irt,'F','') as 'CI' from application where code_irt like 'F%')").then(([results]) => {

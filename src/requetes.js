@@ -12,7 +12,7 @@ https://www.alsacreations.com/astuce/lire/1764-Les-template-strings-en-JavaScrip
 Ainsi pour plus de lisibilité je recomande de bien indenter et de passer des lignes.
 
 Par exemple :
-	Select t1.c1, t1.c2, t1.c3 ,t2.c1, t2.c2 from t1 join t2 on t1.id = t2.t1id where t1.c1 < 10
+	Select t1.c1, t1.c2, t1.c3 ,t2.c1, t2.c2 from t1 join t2 on t1.id = t2.id where t1.c1 < 10
 
 Il sera préférable de marquer :
 	SELECT t1.c1,
@@ -20,7 +20,7 @@ Il sera préférable de marquer :
 		t1.c3,
 		t2.c1,
 		t2.c2
-	FROM t1 JOIN t2 ON t1.id = t2.t1id
+	FROM t1 JOIN t2 ON t1.id = t2.id
 	WHERE t1.c1 < 10
 
 */
@@ -60,6 +60,7 @@ ORDER BY incident.id desc;
 `
 }
 
+
 export function MainCourante(id) {
 	return `
 SELECT incident.id, 
@@ -96,6 +97,7 @@ ORDER BY incident.id asc;
 `
 }
 
+
 export function Applications(keyword) {
 	return `
 SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
@@ -109,6 +111,7 @@ WHERE application.code_irt like "%${keyword}%"
 	or nom_usage like "%${keyword}%";
 `
 }
+
 
 export function AllApplications() {
 	return `
@@ -134,6 +137,7 @@ FROM (application LEFT JOIN application_alias
 ORDER BY cpt DESC
 `
 }
+
 
 export function AllReferences() {
 	return `
@@ -165,6 +169,7 @@ VALUES(
 `
 }
 
+
 export function CreationIncidentAgence(input) {
 	return `
 INSERT INTO incident(
@@ -186,6 +191,7 @@ VALUES(
 `
 }
 
+
 export function CreationReferences(input, idIncident) {
 	return `
 INSERT INTO incident_reference (
@@ -195,6 +201,7 @@ VALUES
 	${input.references.map(ref => `("${ref.reference}", ${idIncident})`).join(",\n\t")};
 `
 }
+
 
 export function CreationReferencesAgence(input, idIncident) {
 	return `
@@ -226,6 +233,7 @@ VALUES
 `
 }
 
+
 export function CreationImpactEnseignesAgence(input, idIncident) {
 	return `
 INSERT INTO incident_impact_enseigne (
@@ -243,6 +251,7 @@ VALUES(
 );
 `
 }
+
 
 export function CreationIncidentMainCourante(input) {
 	return `
@@ -271,6 +280,7 @@ VALUES(
 `
 }
 
+
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
 	const valuesString = input.enseigne_impactee
 		.map(
@@ -292,6 +302,7 @@ VALUES
 	${valuesString};
 `
 }
+
 
 export function CreationImpactEnseignesMainCouranteAgence(input, idIncident) {
 	return `
@@ -319,8 +330,9 @@ VALUES(
 `
 }
 
+
 /*
-	Pour cette requete il peut sembler bizar dans le "else" d'insérer une entrée qui n'est pas sensé exister.
+	Pour cette requete il peut sembler bizare dans le "else" d'insérer une entrée qui n'est pas sensé exister.
 	Cepandant cela est contré par un trigger crée dans la BDD qui crée l'application dans la table "application".
 	Ainsi, les clés étrangères sont réspectés
 	Qu'est-ce qu'un trigger : https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1973090-triggers
@@ -346,6 +358,7 @@ INSERT INTO incident_application_impactee
 `
 }
 
+
 export function DeleteIncidentApplicationImpactee(input)
 {
 	return `
@@ -353,6 +366,7 @@ DELETE FROM incident_application_impactee
 WHERE incident_id=${input.incident_id};
 `
 }
+
 
 export function DeleteIncidentImpactEnseigne(input)
 {
@@ -362,6 +376,7 @@ WHERE incident_id=${input.incident_id};
 `
 }
 
+
 export function DeleteIncidentReference(input){
 	return `
 DELETE FROM incident_reference
@@ -369,12 +384,14 @@ WHERE incident_id=${input.incident_id};
 `
 }
 
+
 export function DeleteIncident(input){
 	return `
 DELETE FROM incident
 WHERE id=${input.incident_id};	
 `
 }
+
 
 ///////////////////////////////////////
 /////////////// UPDATE ////////////////
@@ -399,6 +416,7 @@ WHERE id=${input.incident_id};
 `
 }
 
+
 export function UpdateIncidentImpactEnseigne(input) {
 	return `
 UPDATE incident_impact_enseigne
@@ -414,6 +432,7 @@ WHERE incident_id=${input.incident_id};
 `
 }
 
+
 export function GetReferences(idIncident) {
 	return `
 SELECT incident_reference.id
@@ -421,6 +440,7 @@ FROM incident_reference
 WHERE incident_reference.incident_id = ${idIncident}
 `
 }
+
 
 export function DeleteReferences(input) {
 	// On filtre les références ayant un ID en base et on regarde si il n'y a aucune valeur dans le tableau
@@ -432,6 +452,7 @@ WHERE incident_reference.incident_id = ${input.incident_id} AND incident_referen
 	VALUES(-1)${isNoOtherValues ? "" : ","} ${input.references.filter(ref => ref.reference_id !== undefined).map(inputRef => "("+inputRef.reference_id+")").join()});
 `
 }
+
 
 export function UpdateImpactEnseignes(input, checkbox, datepicker) {
 	return `
