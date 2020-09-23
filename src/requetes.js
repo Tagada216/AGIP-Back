@@ -59,7 +59,13 @@ GROUP BY incident_reference.incident_id
 ORDER BY incident.id desc;
 `
 }
+//Code préseant avant la correction de l'incrémentation du code tigramme. 
 
+/*replace(group_concat(DISTINCT application.trigramme || '-' || 
+application.code_irt || ' : ' || 
+coalesce(libelle_court, '') || ' (' || 
+coalesce(application.nom, '') || ')'
+),",","|||") as 'display_name'*/
 
 export function MainCourante(id) {
 	return `
@@ -80,11 +86,7 @@ SELECT incident.id,
 	incident.is_faux_incident as 'is_faux_incident',
 	incident.is_contournement as 'is_contournement', 
 	incident.description_contournement as 'description_contournement',
-	replace(group_concat(DISTINCT application.trigramme || '-' || 
-		application.code_irt || ' : ' || 
-		coalesce(libelle_court, '') || ' (' || 
-		coalesce(application.nom, '') || ')'
-	),",","|||") as display_name
+	replace(group_concat(DISTINCT application.nom ),",","|||") as 'display_name'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
