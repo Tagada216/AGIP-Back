@@ -34,7 +34,9 @@ import {
 	statOrigineIncidentsMajeurs,
 	createMainCouranteAgence,
 	updateMainCouranteAgence,
+	getCosipByref
 } from "./data"
+
 
 // Définition du port du serveur
 var HTTP_PORT = 5000
@@ -98,8 +100,20 @@ app.get("/api/probs", (req, res) => {
 	getProbs(res)
 })
 
+/////////////////////////////////////
+//Chemins d'obtentions COSIP ///////
+////////////////////////////////////
+
+//Tous les incidents au Cosip 
 app.get("/api/probs/cosip", (req, res) => {
 	getCosipProbs(res)
+})
+
+
+//Chemin d'obtention d'un seul incident dans le cosip
+app.get("/api/probs/cosip/:ref", (req,res) => {
+	var params = [req.params.ref]
+	getCosipByref(res, params[0])
 })
 
 ////////////////////////////////////////

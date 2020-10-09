@@ -10,11 +10,13 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTestKev - Copie.sdb",
+	storage: "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb",
 	define: {
 		timestamps: false
 	}
 })
+//"V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_toolboxTestKev - Copie.sdb"
+//"C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 
 // Ajout d'un cache de la liste des application
 // Sinon la base met 10 à 30 secondes pour répondre
@@ -151,9 +153,15 @@ export function getProbs(res){
 	})
 }
 
-
+ 
 export function getCosipProbs(res){
-	sequelize.query("SELECT * FROM probs WHERE TITREPROBLEME LIKE '%[C]%'").then(([results]) => {
+	sequelize.query("SELECT * FROM probs WHERE titre LIKE '%[C]%'").then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
+}
+
+export function getCosipByref(res, ref){
+	sequelize.query(queries.getCosipByref(ref)).then(([results])=>{
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }

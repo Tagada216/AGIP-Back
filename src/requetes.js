@@ -466,10 +466,18 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 }
 
 
+
 ///////////////////////////////////////
 /////////////// Problèmes /////////////
 ///////////////////////////////////////
-
+export function getCosipByref(ref){
+	return `
+SELECT probs.ref as 'Référence',
+	probs.titre as Titre
+FROM probs
+WHERE probs.ref = "${ref}"
+`
+}
 
 export function getProbs(){
 	return `
@@ -506,8 +514,80 @@ From probs;
 `
 }
 
+////////////////////////////
+/////////AJOUT/////////////
+//////////////////////////
 
+export function CreationCosip(input) {
+	return `
+INSERT INTO probs (
+	ref,
+	titre,
+	date_ouverture,
+	statut,
+	date_fin_previsionnelle,
+	date_cloture,
+	code_irt,
+	enseigne_impactees,
+	branche_rpa,
+	nom_rpa,
+	service_rpa,
+	groupe_affectation_rpa_jump,
+	priorite_incident,
+	risque_reproduction,
+	priorite_probleme_ouverture,
+	resume,
+	impacts,
+	cause,
+	origine,
+	plan_action,
+	plan_action_realise,
+	problem_manager,
+	echeance,
+	description,
+	description_costrat,
+	action_costrat,
+	couche_si,
+	application,
+	impact_itsm,
+	causee_itsm
+	)
+VALUES(
+	${input.ref},
+	${input.titre},
+	${input.date_ouverture},
+	${input.statut},
+	${input.date_fin_previsionnelle},
+	${input.date_cloture},
+	${input.code_irt},
+	${input.enseigne_impactees},
+	${input.branche_rpa},
+	${input.nom_rpa},
+	${input.service_rpa},
+	${input.groupe_affectation_rpa_jump},
+	${input.priorite_incident},
+	${input.risque_reproduction},
+	${input.priorite_problem_ouverture},
+	${input.resume},
+	${input.impacts},
+	${input.cause},
+	${input.origine},
+	${input.plan_action},
+	${input.plan_action_realise},
+	${input.problem_manager},
+	${input.echeance},
+	${input.description},
+	${input.description_codtrat},
+	${input.action_costrat},
+	${input.couche_si},
+	${input.application},
+	${input.impact_itsm},
+	${input.casue_itsm}
+	
 
+);
+`
+}
 
 
 
