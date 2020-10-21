@@ -10,7 +10,8 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD.sdb",
+	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/Projects-TDC/TDC_AGIPROS_BDD_testAgenceIsolees.sdb",
+	
 	define: {
 		timestamps: false
 	}
