@@ -26,7 +26,6 @@ import {
 	getFormatedMainCourante,
 	updateMainCourante,
 	getProbs,
-	getCosipProbs,
 	getReference,
 	deleteIncident,
 	insertMainCourante,
@@ -34,7 +33,9 @@ import {
 	statOrigineIncidentsMajeurs,
 	createMainCouranteAgence,
 	updateMainCouranteAgence,
-	getCosipByref
+	getCosipById,
+	CreationCosip,
+	getCosipFormated
 } from "./data"
 
 
@@ -105,15 +106,21 @@ app.get("/api/probs", (req, res) => {
 ////////////////////////////////////
 
 //Tous les incidents au Cosip 
-app.get("/api/probs/cosip", (req, res) => {
-	getCosipProbs(res)
+app.get("/api/cosip", (req, res) => {
+	getCosipFormated(res)
 })
 
 
 //Chemin d'obtention d'un seul incident dans le cosip
 app.get("/api/probs/cosip/:ref", (req,res) => {
 	var params = [req.params.ref]
-	getCosipByref(res, params[0])
+	getCosipById(res, params[0])
+})
+////////////////////////////////////////
+//Chemins de création des incidents dans le cosip 
+////////////////////////////////////////
+app.post("/api/probs/cosip", (req, res)=> {
+	CreationCosip(res, req.body)
 })
 
 ////////////////////////////////////////

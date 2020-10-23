@@ -465,19 +465,84 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 `
 }
 
+///////////////////////////////////////
+/////////////// COSIP /////////////
+///////////////////////////////////////
 
+export function getCosipById(id){
+	return `
+SELECT incident_reference.reference, 
+incident_impact_enseigne.date_debut, 
+probleme.titre,
+enseigne.nom, 
+probleme.status,
+incident_application_impactee.Application_code_irt, 
+incident_application_impactee.nom_appli, 
+probleme.description, 
+incident_priorite.priorite,
+incident_impact_enseigne.description_impact,
+incident.crise_itim,
+incident.cause,
+incident.origine,
+probleme.plan_action,
+probleme.cause_racine,
+probleme.reference_probleme,
+probleme.entite_responsable,
+incident.action_retablissement,
+incident_impact_enseigne.date_detection,
+incident_impact_enseigne.date_premier_com,
+probleme.Mois,
+probleme.semaine_cosip,
+incident_impact_enseigne.date_fin
+FROM incident
+INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
+INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
+INNER JOIN probleme ON incident.probleme_id=probleme.id
+INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
+INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
+INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
+WHERE incident.id = '${id}';
+`
+}
+
+export function getCosipFormated(){
+	return `
+	SELECT incident.id,
+	incident_reference.reference as Référence, 
+	incident_impact_enseigne.date_debut as 'Date de début', 
+	probleme.titre as Titre,
+	enseigne.nom as Enseigne, 
+	probleme.status as Status,
+	incident_application_impactee.Application_code_irt as "Code IRT de l'application", 
+	incident_application_impactee.nom_appli as Applications, 
+	probleme.description as Résumé, 
+	incident_priorite.priorite as Priorité,
+	incident_impact_enseigne.description_impact as Impact,
+	incident.crise_itim as 'Crise ?',
+	incident.cause as Cause,
+	incident.origine as Origine,
+	probleme.plan_action as "Plan d'action",
+	probleme.cause_racine as 'Cause Racine',
+	probleme.reference_probleme as 'Code probleme',
+	probleme.entite_responsable as 'Entité responsable',
+	incident.action_retablissement as 'Action de rétablissement',
+	incident_impact_enseigne.date_detection as 'Date de détection' ,
+	incident_impact_enseigne.date_premier_com as 'Première com',
+	incident_impact_enseigne.date_fin as 'Date de fin'
+	FROM incident
+	INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
+	INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
+	INNER JOIN probleme ON incident.probleme_id=probleme.id
+	INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
+	INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
+	INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id;
+	`
+}
 
 ///////////////////////////////////////
 /////////////// Problèmes /////////////
 ///////////////////////////////////////
-export function getCosipByref(ref){
-	return `
-SELECT probs.ref as 'Référence',
-	probs.titre as Titre
-FROM probs
-WHERE probs.ref = "${ref}"
-`
-}
+
 
 export function getProbs(){
 	return `
@@ -544,7 +609,7 @@ INSERT INTO probs (
 	plan_action_realise,
 	problem_manager,
 	echeance,
-	description,
+	descritpion,
 	description_costrat,
 	action_costrat,
 	couche_si,
@@ -582,8 +647,7 @@ VALUES(
 	${input.couche_si},
 	${input.application},
 	${input.impact_itsm},
-	${input.casue_itsm}
-	
+	${input.cause_itsm}
 
 );
 `

@@ -153,15 +153,15 @@ export function getProbs(res){
 	})
 }
 
- 
-export function getCosipProbs(res){
-	sequelize.query("SELECT * FROM probs WHERE titre LIKE '%[C]%'").then(([results]) => {
+
+export function getCosipFormated(res){
+	sequelize.query(queries.getCosipFormated()).then(([results]) => {
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }
 
-export function getCosipByref(res, ref){
-	sequelize.query(queries.getCosipByref(ref)).then(([results])=>{
+export function getCosipById(res, id){
+	sequelize.query(queries.getCosipById(id)).then(([results])=>{
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }
@@ -250,11 +250,25 @@ export async function insertMainCourante(res, input) {
 
 export async function insertImpactEnseigne(res, input) {
 	const insertResult = await sequelize.query(queries.CreationIncidentMainCourante(input))
-	const idIncident = insertResult[1].las
+	const idIncident = insertResult[1].lastID
 	// Insertion des impacts enseignes
 	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
 	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
 }
+
+
+
+// ---------------  Insertion d'un incident au COSIP ------------------
+export  function CreationCosip(res, input){
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
+
+	sequelize.query(queries.CreationCosip(input))
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+	res.sendStatus(200)
+}
+
+
 
 
 export async function deleteIncident(res, input) {
