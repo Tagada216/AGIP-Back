@@ -259,12 +259,30 @@ export async function insertImpactEnseigne(res, input) {
 
 
 // ---------------  Insertion d'un incident au COSIP ------------------
-export  function CreationCosip(res, input){
+export async function AddToCosip(res, input, idIncident){
 	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
+	//On insert dans la table cosip en premier (clés étrangére obligent)
+	const insertResult = await sequelize.query(queries.CreationCosip(input))
+	//On récupére l'id de l'incident nouvellement crée 
+	const idCosip = insertResult[1].lastID
 
-	sequelize.query(queries.CreationCosip(input))
+	log(chalk.blue("\n"+"L'id Cosip de l'incident est ")+ chalk.underline.green(idCosip))
 
-	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+	//Insertion des modifications ou non dans la table incident
+	log("\n"+chalk.yellow("--- Insertion des modifications de l'incident ----")) 
+	await sequelize.query(queries.CosiptoIncident(input, idCosip, idIncident))
+
+	//Insertion des modification ou non dans la table incident_impact_enseigne
+	log("\n"+chalk.yellow("---- Insertion des impacts enseignes ----"))
+	await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
+
+	// Insertion des applications impactées
+	log("\n"+chalk.yellow("---- Insertion des applications impactées --- "))
+	for (const appImpactee of input.application_impactee) {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+	}
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
 	res.sendStatus(200)
 }
 

@@ -1,5 +1,7 @@
 //import { SELECT } from "sequelize/types/lib/query-types";
 
+
+
 /*
 	Ce fichier compilera à terme toutes les requetes de l'API
 Cela permetra de séparer les requètes qui sont très verbeuses des appels à la base de données.
@@ -469,6 +471,63 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 /////////////// COSIP /////////////
 ///////////////////////////////////////
 
+//Création d'un incident au cosip 
+export function CreationCosip(input) {
+	return `
+INSERT INTO cosip (
+	entite_responsable,
+	titre,
+	plan_action,
+	cause_racine,
+	class_id
+	)
+VALUES(
+	"${input.entite_responsable}",
+	"${input.titre}",
+	"${input.plan_action}",
+	"${input.cause_racine}",
+	"${input.class_id}"
+);
+`
+}
+
+export function CosiptoIncident(input, idCosip){
+	return `
+	UPDATE incident
+	SET
+		cosip_id="${idCosip}",
+		statut_id="${input.statut_id}",
+		priorite_id="${input.priorite_id}",
+		is_contournement="${input.is_contournement ? 1 : 0}",
+		is_faux_incident="${input.is_faux_incident ? 1 : 0}",
+		description="${input.description}",
+		description_contournement="${input.description_contournement}",
+		cause="${input.cause}",
+		origine="${input.origine}",
+		plan_action="${input.plan_action}",
+		action_retablissement="${input.action_retablissement}"
+	WHERE id ="${input.incident_id}"
+	`
+}
+
+export function CosipIncident(input){
+	return `
+	UPDATE incident_impact_enseigne
+	SET
+		description_impact="${input.description_impact}",
+		date_debut="${input.date_debut}",
+		date_fin="${input.date_fin}",
+		date_detection="${input.date_detection}",
+		date_com_tdc="${input.date_communication_TDC}",
+		date_qualif_p01="${input.date_qualification_p01}",
+		date_premier_com="${input.date_premiere_com}"
+WHERE incident_id="${input.incident_id}";	
+	`
+}
+
+
+
+//Fin d'ajout
 export function getCosipById(id){
 	return `
 SELECT incident_reference.reference, 
@@ -491,8 +550,6 @@ probleme.entite_responsable,
 incident.action_retablissement,
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
-probleme.Mois,
-probleme.semaine_cosip,
 incident_impact_enseigne.date_fin
 FROM incident
 INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
@@ -508,15 +565,16 @@ WHERE incident.id = '${id}';
 export function getCosipFormated(){
 	return `
 	SELECT incident.id,
+	probleme_type.nom as Type,	
 	incident_reference.reference as Référence, 
 	incident_impact_enseigne.date_debut as 'Date de début', 
 	probleme.titre as Titre,
 	enseigne.nom as Enseigne, 
 	probleme.status as Status,
-	incident_application_impactee.Application_code_irt as "Code IRT de l'application", 
-	incident_application_impactee.nom_appli as Applications, 
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application',
 	probleme.description as Résumé, 
 	incident_priorite.priorite as Priorité,
+	incident_impact_enseigne.date_fin as 'Date de fin',
 	incident_impact_enseigne.description_impact as Impact,
 	incident.crise_itim as 'Crise ?',
 	incident.cause as Cause,
@@ -527,15 +585,20 @@ export function getCosipFormated(){
 	probleme.entite_responsable as 'Entité responsable',
 	incident.action_retablissement as 'Action de rétablissement',
 	incident_impact_enseigne.date_detection as 'Date de détection' ,
-	incident_impact_enseigne.date_premier_com as 'Première com',
-	incident_impact_enseigne.date_fin as 'Date de fin'
+	incident_impact_enseigne.date_premier_com as 'Première com'
 	FROM incident
+	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt 
+		and application.trigramme = incident_application_impactee.Application_trigramme
 	INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
+	INNER JOIN probleme_type ON probleme.type_id=probleme_type.id
 	INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 	INNER JOIN probleme ON incident.probleme_id=probleme.id
 	INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
-	INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
-	INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id;
+	INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
+	WHERE probleme.is_cosip=true
+	GROUP BY incident_reference.incident_id
+	ORDER BY incident.id asc;
 	`
 }
 
@@ -582,76 +645,6 @@ From probs;
 ////////////////////////////
 /////////AJOUT/////////////
 //////////////////////////
-
-export function CreationCosip(input) {
-	return `
-INSERT INTO probs (
-	ref,
-	titre,
-	date_ouverture,
-	statut,
-	date_fin_previsionnelle,
-	date_cloture,
-	code_irt,
-	enseigne_impactees,
-	branche_rpa,
-	nom_rpa,
-	service_rpa,
-	groupe_affectation_rpa_jump,
-	priorite_incident,
-	risque_reproduction,
-	priorite_probleme_ouverture,
-	resume,
-	impacts,
-	cause,
-	origine,
-	plan_action,
-	plan_action_realise,
-	problem_manager,
-	echeance,
-	descritpion,
-	description_costrat,
-	action_costrat,
-	couche_si,
-	application,
-	impact_itsm,
-	causee_itsm
-	)
-VALUES(
-	${input.ref},
-	${input.titre},
-	${input.date_ouverture},
-	${input.statut},
-	${input.date_fin_previsionnelle},
-	${input.date_cloture},
-	${input.code_irt},
-	${input.enseigne_impactees},
-	${input.branche_rpa},
-	${input.nom_rpa},
-	${input.service_rpa},
-	${input.groupe_affectation_rpa_jump},
-	${input.priorite_incident},
-	${input.risque_reproduction},
-	${input.priorite_problem_ouverture},
-	${input.resume},
-	${input.impacts},
-	${input.cause},
-	${input.origine},
-	${input.plan_action},
-	${input.plan_action_realise},
-	${input.problem_manager},
-	${input.echeance},
-	${input.description},
-	${input.description_codtrat},
-	${input.action_costrat},
-	${input.couche_si},
-	${input.application},
-	${input.impact_itsm},
-	${input.cause_itsm}
-
-);
-`
-}
 
 
 

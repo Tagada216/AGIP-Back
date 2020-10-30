@@ -34,7 +34,7 @@ import {
 	createMainCouranteAgence,
 	updateMainCouranteAgence,
 	getCosipById,
-	CreationCosip,
+	AddToCosip,
 	getCosipFormated
 } from "./data"
 
@@ -111,16 +111,18 @@ app.get("/api/cosip", (req, res) => {
 })
 
 
+
 //Chemin d'obtention d'un seul incident dans le cosip
-app.get("/api/probs/cosip/:ref", (req,res) => {
-	var params = [req.params.ref]
+app.get("/api/probs/cosip/:id", (req,res) => {
+	var params = [req.params.id]
 	getCosipById(res, params[0])
 })
 ////////////////////////////////////////
-//Chemins de création des incidents dans le cosip 
+//Chemins d'ajout des incidents dans le cosip 
 ////////////////////////////////////////
-app.post("/api/probs/cosip", (req, res)=> {
-	CreationCosip(res, req.body)
+app.post("/api/add-cosip/:id", (req, res)=> {
+	var params =[req.params.id]
+	AddToCosip(res, req.body, params[0])
 })
 
 ////////////////////////////////////////
