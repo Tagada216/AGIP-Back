@@ -470,7 +470,14 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 ///////////////////////////////////////
 /////////////// COSIP /////////////
 ///////////////////////////////////////
-
+//get is cosip 
+export function getIdcosip(input){
+	return `
+SELECT incident.cosip_id
+FROM incident
+WHERE id ="${input}"
+	`
+}
 //Création d'un incident au cosip 
 export function CreationCosip(input) {
 	return `
@@ -530,7 +537,8 @@ WHERE incident_id="${input.incident_id}";
 //Fin d'ajout
 export function getCosipById(id){
 	return `
-SELECT incident_reference.reference, 
+SELECT incident_reference.reference,
+incident.statut_id,
 incident_impact_enseigne.date_debut, 
 cosip.titre,
 enseigne.nom, 

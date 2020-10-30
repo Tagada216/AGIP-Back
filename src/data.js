@@ -82,6 +82,13 @@ export function getIncident(idIncident, res) {
 	})
 }
 
+export function getIdcosip(res,id) {
+	
+	sequelize.query(queries.getIdcosip(id)).then(([results])=>{
+		res.json(results)
+	})
+}
+
 export function getReference(res){
 	sequelize.query("select reference, incident_id from incident_reference;").then(([results])=>{
 		res.json(results)
@@ -345,7 +352,10 @@ export async function updateMainCourante(res, input) {
 	// // Update des references
 	// //////////////
 
-
+	//Sauvegarde de l'id_cosip si l'incident est au cosip 
+	const getcosipId = getIdcosip(input)
+	log(chalk.blue("\n"+"L'id du cosip est : ") + chalk.underline.green(getcosipId))
+	
 	// Delete des informations à l'id de l'incident sélectionné
 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
