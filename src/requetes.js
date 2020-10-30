@@ -510,7 +510,7 @@ export function CosiptoIncident(input, idCosip){
 	`
 }
 
-export function CosipIncident(input){
+export function AddImpactEnseignesCosip(input){
 	return `
 	UPDATE incident_impact_enseigne
 	SET
@@ -532,29 +532,29 @@ export function getCosipById(id){
 	return `
 SELECT incident_reference.reference, 
 incident_impact_enseigne.date_debut, 
-probleme.titre,
+cosip.titre,
 enseigne.nom, 
-probleme.status,
+incident_statut.nom,
 incident_application_impactee.Application_code_irt, 
 incident_application_impactee.nom_appli, 
-probleme.description, 
+incident.description, 
 incident_priorite.priorite,
 incident_impact_enseigne.description_impact,
 incident.crise_itim,
 incident.cause,
 incident.origine,
-probleme.plan_action,
-probleme.cause_racine,
-probleme.reference_probleme,
-probleme.entite_responsable,
+cosip.plan_action,
+cosip.cause_racine,
+cosip.entite_responsable,
 incident.action_retablissement,
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
 incident_impact_enseigne.date_fin
 FROM incident
 INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
+INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
-INNER JOIN probleme ON incident.probleme_id=probleme.id
+INNER JOIN cosip ON incident.cosip_id=cosip.id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
@@ -564,25 +564,23 @@ WHERE incident.id = '${id}';
 
 export function getCosipFormated(){
 	return `
-	SELECT incident.id,
-	probleme_type.nom as Type,	
+	SELECT incident.id,	
 	incident_reference.reference as Référence, 
 	incident_impact_enseigne.date_debut as 'Date de début', 
-	probleme.titre as Titre,
+	cosip.titre as Titre,
 	enseigne.nom as Enseigne, 
-	probleme.status as Status,
+	incident_statut.nom as Status,
 	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application',
-	probleme.description as Résumé, 
+	incident.description as Description, 
 	incident_priorite.priorite as Priorité,
 	incident_impact_enseigne.date_fin as 'Date de fin',
 	incident_impact_enseigne.description_impact as Impact,
 	incident.crise_itim as 'Crise ?',
 	incident.cause as Cause,
 	incident.origine as Origine,
-	probleme.plan_action as "Plan d'action",
-	probleme.cause_racine as 'Cause Racine',
-	probleme.reference_probleme as 'Code probleme',
-	probleme.entite_responsable as 'Entité responsable',
+	cosip.plan_action as "Plan d'action",
+	cosip.cause_racine as 'Cause Racine',
+	cosip.entite_responsable as 'Entité responsable',
 	incident.action_retablissement as 'Action de rétablissement',
 	incident_impact_enseigne.date_detection as 'Date de détection' ,
 	incident_impact_enseigne.date_premier_com as 'Première com'
@@ -591,12 +589,11 @@ export function getCosipFormated(){
 	left join application on application.code_irt = incident_application_impactee.Application_code_irt 
 		and application.trigramme = incident_application_impactee.Application_trigramme
 	INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
-	INNER JOIN probleme_type ON probleme.type_id=probleme_type.id
+	INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 	INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
-	INNER JOIN probleme ON incident.probleme_id=probleme.id
+	INNER JOIN cosip ON incident.cosip_id=cosip.id
 	INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 	INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
-	WHERE probleme.is_cosip=true
 	GROUP BY incident_reference.incident_id
 	ORDER BY incident.id asc;
 	`
