@@ -1,5 +1,6 @@
 import * as queries from "./requetes.js"
 import chalk from "chalk"
+import { response } from "express"
 
 // Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
@@ -83,8 +84,7 @@ export function getIncident(idIncident, res) {
 }
 
 export function getIdcosip(res,id) {
-	
-	sequelize.query(queries.getIdcosip(id)).then(([results])=>{
+	sequelize.query(queries.getIdcosip(id)).then(([results]) => {
 		res.json(results)
 	})
 }
@@ -352,9 +352,8 @@ export async function updateMainCourante(res, input) {
 	// // Update des references
 	// //////////////
 
-	//Sauvegarde de l'id_cosip si l'incident est au cosip 
-	const getcosipId = getIdcosip(input)
-	log(chalk.blue("\n"+"L'id du cosip est : ") + chalk.underline.green(getcosipId))
+
+	
 	
 	// Delete des informations à l'id de l'incident sélectionné
 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)

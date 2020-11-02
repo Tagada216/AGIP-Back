@@ -87,6 +87,7 @@ SELECT incident.id,
 	incident_impact_enseigne.date_premier_com as 'date_premier_com',
 	incident.is_faux_incident as 'is_faux_incident',
 	incident.is_contournement as 'is_contournement', 
+	incident.cosip_id,
 	incident.description_contournement as 'description_contournement',
 	replace(group_concat(DISTINCT application.nom ),",","|||") as 'display_name'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
@@ -269,7 +270,8 @@ INSERT INTO incident(
 	cause,
 	origine,
 	plan_action,
-	action_retablissement)
+	action_retablissement,
+	cosip_id)
 VALUES(
 	"${input.description}",
 	${input.statut_id},
@@ -280,7 +282,8 @@ VALUES(
 	"${input.cause}",
 	"${input.origine}",
 	"${input.plan_action}",
-	"${input.action_retablissement}");
+	"${input.action_retablissement}",
+	${input.cosip_id});
 `
 }
 

@@ -39,10 +39,6 @@ import {
 	getIdcosip
 } from "./data"
 
-app.get("/api/cosipId/:id", (req, res) => {
-	var params = [req.params.id]
-	getIdcosip(res, params[0])
-})
 // Définition du port du serveur
 var HTTP_PORT = 5000
 // Allumage du server
@@ -109,11 +105,17 @@ app.get("/api/probs", (req, res) => {
 //Chemins d'obtentions COSIP ///////
 ////////////////////////////////////
 
+// Récupération de l'ind COSIP dans la table incident 
+
+app.get("/api/id-cosip/:id", (req,res)=>{
+	var params = [req.params.id]
+	getIdcosip(res, params[0])
+})
+
 //Tous les incidents au Cosip 
 app.get("/api/cosip", (req, res) => {
 	getCosipFormated(res)
 })
-
 
 
 //Chemin d'obtention d'un seul incident dans le cosip
