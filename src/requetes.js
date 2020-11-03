@@ -556,7 +556,6 @@ incident.cause,
 incident.origine,
 cosip.plan_action,
 cosip.cause_racine,
-cosip.entite_responsable,
 incident.action_retablissement,
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
@@ -588,10 +587,10 @@ export function getCosipFormated(){
 	incident_impact_enseigne.description_impact as 'Impact Enseigne',
 	incident.crise_itim as 'Crise ?',
 	incident.cause as Cause,
+	incident_entite_responsable.nom as 'Entité responsable',
 	incident.origine as Origine,
 	cosip.plan_action as "Plan d'action",
 	cosip.cause_racine as 'Cause Racine',
-	cosip.entite_responsable as 'Entité responsable',
 	incident.action_retablissement as 'Action de rétablissement',
 	incident_impact_enseigne.date_detection as 'Date de détection' ,
 	incident_impact_enseigne.date_premier_com as 'Première com'
@@ -603,6 +602,7 @@ export function getCosipFormated(){
 	INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 	INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 	INNER JOIN cosip ON incident.cosip_id=cosip.id
+	INNER JOIN incident_entite_responsable ON incident.entite_responsable_id=incident_entite_responsable.id
 	INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 	INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
 	GROUP BY incident_reference.incident_id
