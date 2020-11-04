@@ -107,6 +107,11 @@ export function getIncStatut(res) {
 	})
 }
 
+export function getIncGravite(res){
+	sequelize.query("select * from incident_gravite;").then(([results])=>{
+		res.json(results)
+	})
+}
 export function getIncRespEntity(res) {
 	sequelize.query("select * from incident_entite_responsable;").then(([results]) => {
 		res.json(results)

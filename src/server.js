@@ -36,7 +36,8 @@ import {
 	getCosipById,
 	AddToCosip,
 	getCosipFormated,
-	getIdcosip
+	getIdcosip,
+	getIncGravite
 } from "./data"
 
 // Définition du port du serveur
@@ -154,6 +155,10 @@ app.get("/api/incident/:id", (req, res) => {
 //Chemins d'obtention des "types énumérées"
 ////////////////////////////////////////
 
+//Toute les gravités 
+app.get("/api/incidents/gravite",(req,res)=> {
+	getIncGravite(res)
+})
 //toutes les priorités
 app.get("/api/incidents/priorite", (req, res) => {
 	getIncPrio(res)
