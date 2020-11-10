@@ -132,6 +132,10 @@ app.post("/api/add-cosip/:id", (req, res)=> {
 	AddToCosip(res, req.body, params[0])
 })
 
+app.put("/api/update-cosip/:id", (req, res)=> {
+	var params =[req.params.id]
+	UpdateCosip(res, req.body, params[0])
+})
 ////////////////////////////////////////
 //Chemins d'obtention des incidents
 ////////////////////////////////////////
