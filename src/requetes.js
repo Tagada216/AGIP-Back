@@ -170,26 +170,26 @@ VALUES(
 }
 
 
-export function CreationIncidentAgence(input) {
-	return `
-INSERT INTO incident(
-	description,
-	cause,
-	statut_id, 
-	priorite_id, 
-	is_contournement,
-	description_contournement,
-	is_faux_incident)
-VALUES(
-	"${input.description}",
-	"${input.cause}",
-	${input.statut_id},
-	${input.priorite_id},
-	${input.is_contournement ? 1 : 0},
-	"${input.description_contournement}",
-	${input.is_faux_incident ? 1 : 0});
-`
-}
+// export function CreationIncidentAgence(input) {
+// 	return `
+// INSERT INTO incident(
+// 	description,
+// 	cause,
+// 	statut_id, 
+// 	priorite_id, 
+// 	is_contournement,
+// 	description_contournement,
+// 	is_faux_incident)
+// VALUES(
+// 	"${input.description}",
+// 	"${input.cause}",
+// 	${input.statut_id},
+// 	${input.priorite_id},
+// 	${input.is_contournement ? 1 : 0},
+// 	"${input.description_contournement}",
+// 	${input.is_faux_incident ? 1 : 0});
+// `
+// }
 
 
 export function CreationReferences(input, idIncident) {
@@ -280,6 +280,14 @@ VALUES(
 `
 }
 
+export function CreationIncidentAgence(input) {
+	return `
+INSERT INTO incident(priorite_id)
+VALUES(
+	${idIncident},
+	${input.priorite_id});
+`
+}
 
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
 	const valuesString = input.enseigne_impactee
@@ -398,23 +406,23 @@ WHERE id=${input.incident_id};
 ///////////////////////////////////////
 
 
-export function UpdateIncident(input) {
+export function UpdateIncidentAgence(input) {
 	return `
 UPDATE incident
 SET
-	statut_id=${input.statut_id},
-	priorite_id=${input.priorite_id},
-	is_contournement=${input.is_contournement ? 1 : 0},
-	is_faux_incident=${input.is_faux_incident ? 1 : 0},
-	description="${input.description}",
-	description_contournement="${input.description_contournement}",
-	cause="${input.cause}",
-	origine="${input.origine}",
-	plan_action="${input.plan_action}",
-	action_retablissement="${input.action_retablissement}"
+	priorite_id=${input.priorite_id}
 WHERE id=${input.incident_id};
 `
 }
+// statut_id=${input.statut_id},
+// is_contournement=${input.is_contournement ? 1 : 0},
+// 	is_faux_incident=${input.is_faux_incident ? 1 : 0},
+// 	description="${input.description}",
+// 	description_contournement="${input.description_contournement}",
+// 	cause="${input.cause}",
+// 	origine="${input.origine}",
+// 	plan_action="${input.plan_action}",
+// 	action_retablissement="${input.action_retablissement}
 
 
 export function UpdateIncidentImpactEnseigne(input) {
