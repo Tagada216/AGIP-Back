@@ -546,16 +546,38 @@ export function UpdateCosip(input){
 		titre="${input.titre}",
 		plan_action="${input.plan_action}",
 		cause_racine="${input.cause_racine}",
-		class_id="${input.class_id}"
-	WHERE id ="${input.id}"
+		classification_id="${input.classification_id}",
+		gravite_id="${input.gravite_id}"
+	WHERE id ="${input.cosip_id}"
+	`
+}
+export function UpdateCosiptoIncident(input){
+	return `
+	UPDATE incident
+	SET
+		cosip_id="${input.cosip_id}",
+		statut_id="${input.statut_id}",
+		priorite_id="${input.priorite_id}",
+		is_contournement="${input.is_contournement ? 1 : 0}",
+		is_faux_incident="${input.is_faux_incident ? 1 : 0}",
+		description="${input.description}",
+		description_contournement="${input.description_contournement}",
+		cause="${input.cause}",
+		origine="${input.origine}",
+		plan_action="${input.plan_action}",
+		action_retablissement="${input.action_retablissement}"
+	WHERE id ="${input.incident_id}"
 	`
 }
 
-
 //Fin d'ajout
+
+/// Requêtes de récupération  COSIP 
 export function getCosipById(id){
 	return `
 SELECT 
+incident.cosip_id,
+incident.id,
 replace (group_concat (DISTINCT incident_reference.reference),",","/") as 'reference',
 replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id',
 incident.statut_id,
@@ -568,14 +590,16 @@ replace (group_concat (DISTINCT incident_application_impactee.Application_code_i
 replace (group_concat (DISTINCT incident_application_impactee.nom_appli),","," | ") as 'application',
 incident.description, 
 incident_priorite.priorite,
+incident.priorite_id,
 incident_impact_enseigne.description_impact,
 incident.crise_itim,
 incident.cause,
 incident.origine,
 cosip.plan_action,
 cosip.cause_racine,
+cosip.classification_id,
+cosip.gravite_id,
 incident.action_retablissement,
-incident_gravite.id as 'gravite_id',
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
 incident_impact_enseigne.date_fin,
@@ -586,7 +610,6 @@ INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
 INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 INNER JOIN cosip ON incident.cosip_id=cosip.id
-join incident_gravite on incident.gravite_id=incident_gravite.id
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
@@ -626,8 +649,8 @@ export function getCosipFormated(){
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join cosip on incident.cosip_id = cosip.id
-	join incident_classification on incident.classification_id=incident_classification.id
-	join incident_gravite on incident.gravite_id=incident_gravite.id
+	join incident_classification on cosip.classification_id=incident_classification.id
+	join incident_gravite on cosip.gravite_id=incident_gravite.id
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id

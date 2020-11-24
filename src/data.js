@@ -301,22 +301,22 @@ export async function AddToCosip(res, input, idIncident){
 
 // ---------------  Modification du COSIP ------------------
 export async function UpdateCosip(res, input){
-	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
+	log("\n"+chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
 	//On insert dans la table cosip en premier (clés étrangére obligent)
 	await sequelize.query(queries.UpdateCosip(input))
 
 	//Insertion des modifications ou non dans la table incident
 	log("\n"+chalk.yellow("--- Insertion des modifications de l'incident ----")) 
-	await sequelize.query(queries.CosiptoIncident(input, idCosip))
+	await sequelize.query(queries.UpdateCosiptoIncident(input))
 
 	//Insertion des modification ou non dans la table incident_impact_enseigne
 	log("\n"+chalk.yellow("---- Insertion des impacts enseignes ----"))
-	await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
+	await sequelize.query(queries.AddImpactEnseignesCosip(input))
 
 	// Insertion des applications impactées
 	log("\n"+chalk.yellow("---- Insertion des applications impactées --- "))
 	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, input.incident_id))
 	}	
 	
 	log("\n"+chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
