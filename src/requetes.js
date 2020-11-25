@@ -422,8 +422,41 @@ SET
 WHERE id=${input.incident_id};
 `
 }
-
-
+export function UpdateDeleteReferences(input){
+	return`
+	DELETE
+	FROM incident_reference
+	WHERE incident_id= "${input.incident_id}";
+	`
+}
+export function UpdateReferences(input) {
+	return `
+	INSERT INTO incident_reference (
+		reference, 
+		incident_id)
+	VALUES
+		${input.references.map(ref => `("${ref.reference}", ${input.incident_id})`).join(",\n\t")};
+`
+}
+export function UpdateCreationApplicationsImpactees(application, incidentId){
+	console.log(application)
+	if (application.trigramme !== undefined && application.code_irt !== undefined){
+		return `
+INSERT INTO incident_application_impactee
+VALUES(
+	${incidentId}, 
+	"${application.code_irt}", 
+	"${application.trigramme}",
+	NULL);	
+`	
+	}
+	else
+		return `
+INSERT INTO incident_application_impactee
+	SELECT ${incidentId}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
+`
+}
 export function UpdateIncidentImpactEnseigne(input) {
 	return `
 UPDATE incident_impact_enseigne
@@ -489,14 +522,16 @@ INSERT INTO cosip (
 	titre,
 	plan_action,
 	cause_racine,
-	class_id
+	classification_id,
+	gravite_id
 	)
 VALUES(
 	"${input.entite_responsable}",
 	"${input.titre}",
 	"${input.plan_action}",
 	"${input.cause_racine}",
-	"${input.class_id}"
+	"${input.classification_id}",
+	"${input.gravite_id}"
 );
 `
 }
@@ -599,11 +634,11 @@ cosip.plan_action,
 cosip.cause_racine,
 cosip.classification_id,
 cosip.gravite_id,
+cosip.entite_responsable,
 incident.action_retablissement,
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
 incident_impact_enseigne.date_fin,
-incident.entite_responsable_id as 'responsable_id',
 incident_entite_responsable.nom as 'responsable_nom'
 FROM incident
 INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
@@ -635,17 +670,18 @@ export function getCosipFormated(){
 	incident.crise_itim as 'crise ITIM ? ',
 	incident.cause as 'cause',
 	incident.origine as 'origine',
-	incident.action_retablissement as 'action_retablissement',
+	incident.action_retablissement as 'Action de rétablissement',
 	cosip.plan_action as "Plan d'action",
 	cosip.cause_racine as 'Cause Racine',
 	incident.description as 'description',  
 	incident_statut.id as 'statut',   
 	incident.plan_action as 'plan_action', 
-	incident_impact_enseigne.date_detection as 'date detection',
-	incident_impact_enseigne.date_com_tdc as 'date communication tdc', 
-	incident_impact_enseigne.date_qualif_p01 as 'date qualif_p01',
-	incident_impact_enseigne.date_premier_com as 'date premier com',
-	incident.description_contournement as 'description contournement'
+	incident_impact_enseigne.date_detection as 'Date detection',
+	incident_impact_enseigne.date_com_tdc as 'Date communication tdc', 
+	incident_impact_enseigne.date_qualif_p01 as 'Date qualif_p01',
+	incident_impact_enseigne.date_premier_com as 'Date premier com',
+	incident.description_contournement as 'Description contournement',
+	cosip.entite_responsable as 'Entite Responsable'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join cosip on incident.cosip_id = cosip.id
