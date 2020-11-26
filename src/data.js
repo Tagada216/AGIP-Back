@@ -301,6 +301,10 @@ export async function AddToCosip(res, input, idIncident){
 
 // ---------------  Modification du COSIP ------------------
 export async function UpdateCosip(res, input){
+	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+	await sequelize.query(deleteIncidentAppImpactee)
+
+	
 	log("\n"+chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
 	//On insert dans la table cosip en premier (clés étrangére obligent)
 	await sequelize.query(queries.UpdateCosip(input))
