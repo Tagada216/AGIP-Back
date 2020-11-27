@@ -302,6 +302,9 @@ export async function AddToCosip(res, input, idIncident){
 // ---------------  Modification du COSIP ------------------
 export async function UpdateCosip(res, input){
 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+
+	await sequelize.query(deleteIncidentImpEns)
 	await sequelize.query(deleteIncidentAppImpactee)
 
 	
@@ -313,9 +316,9 @@ export async function UpdateCosip(res, input){
 	log("\n"+chalk.yellow("--- Insertion des modifications de l'incident ----")) 
 	await sequelize.query(queries.UpdateCosiptoIncident(input))
 
-	//Insertion des modification ou non dans la table incident_impact_enseigne
-	log("\n"+chalk.yellow("---- Insertion des impacts enseignes ----"))
-	await sequelize.query(queries.AddImpactEnseignesCosip(input))
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, input.incident_id))
 
 	// Insertion des applications impactées
 	log("\n"+chalk.yellow("---- Insertion des applications impactées --- "))
@@ -345,8 +348,10 @@ export async function deleteIncident(res, input) {
 export async function updateMainCourante(res, input) {
 	
 
-
+	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+	
+	await sequelize.query(deleteIncidentImpEns)
 	await sequelize.query(deleteIncidentAppImpactee)
 
 
@@ -364,8 +369,9 @@ export async function updateMainCourante(res, input) {
 	await sequelize.query(queries.UpdateReferences(input))
 
 	// Insertion des impacts enseignes
-	log("\n"+chalk.yellow("Insertion ou Update des impacts enseignes"))
-	await sequelize.query(queries.UpdateIncidentImpactEnseigne(input))
+	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
+	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, input.incident_id))
+
 
 	// Insertion des applications impactées
 	log("\n"+chalk.yellow("Insertion des applications impactées"))

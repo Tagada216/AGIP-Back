@@ -457,20 +457,7 @@ INSERT INTO incident_application_impactee
 	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
-export function UpdateIncidentImpactEnseigne(input) {
-	return `
-UPDATE incident_impact_enseigne
-SET 
-	description_impact="${input.description_impact}",
-	date_debut="${input.date_debut}",
-	date_fin="${input.date_fin}",
-	date_detection="${input.date_detection}",
-	date_com_tdc="${input.date_communication_TDC}",
-	date_qualif_p01="${input.date_qualification_p01}",
-	date_premier_com="${input.date_premiere_com}"
-WHERE incident_id=${input.incident_id};	
-`
-}
+
 
 
 export function GetReferences(idIncident) {
@@ -520,14 +507,14 @@ export function CreationCosip(input) {
 INSERT INTO cosip (
 	plan_action,
 	cause_racine_id,
-	gravite_id,
-	comment
+	comment,
+	cosip_resume
 	)
 VALUES(
 	"${input.plan_action}",
 	"${input.cause_racine_id}",
-	"${input.gravite_id}",
-	"${input.commentaire}"
+	"${input.commentaire}",
+	"${input.cosip_resume}"
 );
 `
 }
@@ -560,6 +547,7 @@ export function AddImpactEnseignesCosip(input){
 		date_debut="${input.date_debut}",
 		date_fin="${input.date_fin}",
 		date_detection="${input.date_detection}",
+		gravite_id="${input.gravite_id}",
 		date_com_tdc="${input.date_communication_TDC}",
 		date_qualif_p01="${input.date_qualification_p01}",
 		date_premier_com="${input.date_premiere_com}"
@@ -576,8 +564,8 @@ export function UpdateCosip(input){
 	SET 
 		plan_action="${input.plan_action}",
 		cause_racine_id="${input.cause_racine_id}",
-		gravite_id="${input.gravite_id}",
-		comment="${input.commentaire}"
+		comment="${input.commentaire}",
+		cosip_resume="${input.cosip_resume}"
 	WHERE id ="${input.cosip_id}"
 	`
 }
@@ -619,7 +607,7 @@ replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom',
 incident_statut.nom,
 replace (group_concat (DISTINCT incident_application_impactee.Application_code_irt),",","/") as 'code_irt' ,
 replace (group_concat (DISTINCT incident_application_impactee.nom_appli),","," | ") as 'application',
-incident.description, 
+cosip.cosip_resume, 
 incident_priorite.priorite,
 incident.priorite_id,
 incident_impact_enseigne.description_impact,
@@ -629,11 +617,12 @@ incident.origine,
 cosip.plan_action,
 cosip.cause_racine_id,
 incident_cause_racine.nom as 'cause_racine',
-cosip.gravite_id,
+incident_impact_enseigne.gravite_id,
 incident.action_retablissement,
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
 incident_impact_enseigne.date_fin,
+incident.entite_responsable_id,
 incident_entite_responsable.nom as 'responsable_nom',
 cosip.comment
 FROM incident
@@ -641,7 +630,7 @@ INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
 INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 INNER JOIN cosip ON incident.cosip_id=cosip.id
-INNER JOIN incident_gravite ON incident_gravite.id=cosip.gravite_id
+INNER JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
@@ -653,13 +642,14 @@ WHERE incident.id = '${id}';
 
 export function getCosipFormated(){
 	return `
-	SELECT incident.id,  
+	SELECT 
+	incident.id,
 	incident_gravite.class as "Majeur / Significatif",
-	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'reference', 
-	incident_impact_enseigne.date_debut as 'date_debut', 
+	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Réference', 
+	incident_impact_enseigne.date_debut as 'date_debut',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
 	replace(group_concat(DISTINCT application.nom ),","," | ") as 'Application(s)',
-	incident.description as "Résumé de l'incident" ,
+	cosip.cosip_resume as "Résumé de l'incident",
 	incident_priorite.priorite as 'priorité',
 	incident_impact_enseigne.date_fin as 'date de fin',
 	incident_impact_enseigne.description_impact as "Impact", 
@@ -679,17 +669,18 @@ export function getCosipFormated(){
 	incident_impact_enseigne.date_qualif_p01 as 'Date qualif_p01',
 	incident_impact_enseigne.date_premier_com as 'Date premier com',
 	incident.description_contournement as 'Description contournement',
-	cosip.entite_responsable as 'Entite Responsable',
+	cosip.other_entite_responsable as 'Entite Responsable',
 	cosip.comment as "Commentaire"
-FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
-	join incident_statut on incident.statut_id = incident_statut.id) 
-	join cosip on incident.cosip_id = cosip.id
-	JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
-	join incident_gravite on cosip.gravite_id=incident_gravite.id
-	join incident_priorite on incident.priorite_id = incident_priorite.id)
-	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
-	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
+FROM incident_reference join incident on incident.id = incident_reference.incident_id
+INNER JOIN cosip on incident.cosip_id = cosip.id
+INNER JOIN incident_impact_enseigne ON incident.id = incident_impact_enseigne.incident_id
+INNER JOIN enseigne ON enseigne.id = incident_impact_enseigne.enseigne_id
+INNER JOIN incident_statut on incident.statut_id = incident_statut.id
+INNER JOIN incident_gravite ON incident_gravite.id = incident_impact_enseigne.gravite_id
+INNER JOIN  incident_priorite on incident.priorite_id = incident_priorite.id
+INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
+left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`
