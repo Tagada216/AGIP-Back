@@ -85,6 +85,7 @@ SELECT incident.id,
 	incident_impact_enseigne.date_com_tdc as 'date_communication_tdc', 
 	incident_impact_enseigne.date_qualif_p01 as 'date_qualif_p01',
 	incident_impact_enseigne.date_premier_com as 'date_premier_com',
+	incident_impact_enseigne.gravite_id,
 	incident.is_faux_incident as 'is_faux_incident',
 	incident.is_contournement as 'is_contournement', 
 	incident.cosip_id,
@@ -291,13 +292,14 @@ VALUES(
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
 	const valuesString = input.enseigne_impactee
 		.map(
-			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+			enseigne => `(${idIncident},${enseigne},"${input.gravite_id}","${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 
 	return `
 INSERT INTO incident_impact_enseigne (
 	incident_id,
 	enseigne_id,
+	gravite_id,
 	description_impact,
 	date_debut,
 	date_detection,
@@ -583,7 +585,7 @@ export function UpdateCosiptoIncident(input){
 		cause="${input.cause}",
 		origine="${input.origine}",
 		plan_action="${input.plan_action}",
-		entite_responsable_id="${input.entite_responsable}",
+		entite_responsable_id="${input.entite_responsable_id}",
 		action_retablissement="${input.action_retablissement}"
 	WHERE id ="${input.incident_id}"
 	`
@@ -596,35 +598,35 @@ export function getCosipById(id){
 	return `
 SELECT 
 incident.cosip_id,
-incident_gravite.class as "classification",
 incident.id,
+incident.statut_id,
+incident_priorite.priorite,
+incident.priorite_id,
+incident.crise_itim,
+incident.cause,
+incident.origine,
+incident.action_retablissement,
 replace (group_concat (DISTINCT incident_reference.reference),",","/") as 'reference',
 replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id',
-incident.statut_id,
-incident_impact_enseigne.date_debut, 
+incident_gravite.class as "classification",
 replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
 replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
 incident_statut.nom,
 replace (group_concat (DISTINCT incident_application_impactee.Application_code_irt),",","/") as 'code_irt' ,
 replace (group_concat (DISTINCT incident_application_impactee.nom_appli),","," | ") as 'application',
 cosip.cosip_resume, 
-incident_priorite.priorite,
-incident.priorite_id,
-incident_impact_enseigne.description_impact,
-incident.crise_itim,
-incident.cause,
-incident.origine,
 cosip.plan_action,
 cosip.cause_racine_id,
+cosip.comment,
 incident_cause_racine.nom as 'cause_racine',
+incident_impact_enseigne.description_impact,
 incident_impact_enseigne.gravite_id,
-incident.action_retablissement,
+incident_impact_enseigne.date_debut, 
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
 incident_impact_enseigne.date_fin,
 incident.entite_responsable_id,
-incident_entite_responsable.nom as 'responsable_nom',
-cosip.comment
+incident_entite_responsable.nom as 'responsable_nom'
 FROM incident
 INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
 INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
@@ -651,6 +653,7 @@ export function getCosipFormated(){
 	replace(group_concat(DISTINCT application.nom ),","," | ") as 'Application(s)',
 	cosip.cosip_resume as "Résumé de l'incident",
 	incident_priorite.priorite as 'priorité',
+	incident_statut.nom as 'Statut',
 	incident_impact_enseigne.date_fin as 'date de fin',
 	incident_impact_enseigne.description_impact as "Impact", 
 	incident_gravite.nom as "Gravité avérée",
@@ -659,10 +662,7 @@ export function getCosipFormated(){
 	incident.origine as 'origine',
 	incident.action_retablissement as 'Action de rétablissement',
 	cosip.plan_action as "Plan d'action",
-	cosip.cause_racine_id,
 	incident_cause_racine.nom as "Cause racine",
-	incident.description as 'description',  
-	incident_statut.id as 'statut',   
 	incident.plan_action as 'plan_action', 
 	incident_impact_enseigne.date_detection as 'Date detection',
 	incident_impact_enseigne.date_com_tdc as 'Date communication tdc', 
