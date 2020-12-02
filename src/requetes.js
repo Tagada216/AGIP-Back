@@ -290,11 +290,15 @@ VALUES(
 
 
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
+	const descImpact = input.desc_impact_enseigne
+
 	const valuesString = input.enseigne_impactee
 		.map(
 			enseigne => `(${idIncident},${enseigne},"${input.gravite_id}","${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
-
+	console.log('Value string v ')
+	console.log(valuesString)
+	console.log('---------End value-------')
 	return `
 INSERT INTO incident_impact_enseigne (
 	incident_id,
