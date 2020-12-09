@@ -272,6 +272,11 @@ export async function insertImpactEnseigne(res, input) {
 
 // ---------------  Insertion d'un incident au COSIP ------------------
 export async function AddToCosip(res, input, idIncident){
+
+	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+
+	await sequelize.query(deleteIncidentImpEns)
+
 	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
 	//On insert dans la table cosip en premier (clés étrangére obligent)
 	const insertResult = await sequelize.query(queries.CreationCosip(input))

@@ -222,6 +222,7 @@ VALUES(
 
 
 export function CreationImpactEnseignes(input, idIncident) {
+
 	const valuesString = input.enseigne_impactee
 		.map(
 			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
@@ -275,26 +276,51 @@ INSERT INTO incident(
 	cosip_id)
 VALUES(
 	"${input.description}",
-	${input.statut_id},
-	${input.priorite_id},
-	${input.is_contournement ? 1 : 0},
+	"${input.statut_id}",
+	"${input.priorite_id}",
+	"${input.is_contournement ? 1 : 0}",
 	"${input.description_contournement}",
-	${input.is_faux_incident ? 1 : 0},
+	"${input.is_faux_incident ? 1 : 0}",
 	"${input.cause}",
 	"${input.origine}",
 	"${input.plan_action}",
 	"${input.action_retablissement}",
-	${input.cosip_id});
+	"${input.cosip_id}");
 `
 }
 
 
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
-	const descImpact = input.desc_impact_enseigne
+	var tab_impact = []
 
-	const valuesString = input.enseigne_impactee
+	for(let i = 0; i <= input.enseigne_impactee.length; i++){
+		if (input.enseigne_impactee[i] == 1){
+			tab_impact.push({
+				enseigne_id: 1,
+				desc: input.description_impactBDDF,
+				gravite: input.gravite_idBDDF
+			})
+		}
+		if (input.enseigne_impactee[i] == 2){
+			tab_impact.push({
+				enseigne_id: 2,
+				desc: input.description_impactCDN,
+				gravite: input.gravite_idCDN
+			})
+		}
+		if (input.enseigne_impactee[i] == 3){
+			tab_impact.push({
+				enseigne_id: 3,
+				desc: input.description_impactBPF,
+				gravite: input.gravite_idBPF
+			})
+		}	
+	}
+
+	console.log(input.description_impactCDN)
+	const valuesString = tab_impact
 		.map(
-			enseigne => `(${idIncident},${enseigne},"${input.gravite_id}","${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 	console.log('Value string v ')
 	console.log(valuesString)
@@ -545,20 +571,56 @@ export function CosiptoIncident(input, idCosip){
 	`
 }
 
-export function AddImpactEnseignesCosip(input){
+export function AddImpactEnseignesCosip(input, idIncident){
+	var tab_impact = []
+
+	for(let i = 0; i <= input.enseigne_impactee.length; i++){
+		if (input.enseigne_impactee[i] == 1){
+			tab_impact.push({
+				enseigne_id: 1,
+				desc: input.description_impactBDDF,
+				gravite: input.impact_avereBDDF
+			})
+		}
+		if (input.enseigne_impactee[i] == 2){
+			tab_impact.push({
+				enseigne_id: 2,
+				desc: input.description_impactCDN,
+				gravite: input.impact_avereCDN
+			})
+		}
+		if (input.enseigne_impactee[i] == 3){
+			tab_impact.push({
+				enseigne_id: 3,
+				desc: input.description_impactBPF,
+				gravite: input.impact_avereBPF
+			})
+		}	
+	}
+
+	console.log(input.description_impactCDN)
+	const valuesString = tab_impact
+		.map(
+			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+		.join(",\n\t")
+	console.log('Value string v ')
+	console.log(valuesString)
+	console.log('---------End value-------')
 	return `
-	UPDATE incident_impact_enseigne
-	SET
-		description_impact="${input.description_impact}",
-		date_debut="${input.date_debut}",
-		date_fin="${input.date_fin}",
-		date_detection="${input.date_detection}",
-		gravite_id="${input.gravite_id}",
-		date_com_tdc="${input.date_communication_TDC}",
-		date_qualif_p01="${input.date_qualification_p01}",
-		date_premier_com="${input.date_premiere_com}"
-WHERE incident_id="${input.incident_id}";	
-	`
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	gravite_id,
+	description_impact,
+	date_debut,
+	date_detection,
+	date_com_tdc,
+	date_qualif_p01,
+	date_premier_com,
+	date_fin)
+VALUES
+	${valuesString};
+`
 }
 
 /////// UPDATE /////////////
@@ -608,13 +670,17 @@ incident_priorite.priorite,
 incident.priorite_id,
 incident.crise_itim,
 incident.cause,
-incident.origine,
+incident.origine, 
 incident.action_retablissement,
 replace (group_concat (DISTINCT incident_reference.reference),",","/") as 'reference',
 replace(group_concat(DISTINCT incident_reference.id),",","/") as 'reference_id',
 incident_gravite.class as "classification",
 replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
 replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
+replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
+replace (group_concat (DISTINCT incident_impact_enseigne.gravite_id),",","/") as 'gravite_id',
+replace (group_concat (DISTINCT incident_gravite.nom),",","/") as 'gravite_nom',
+replace (group_concat (DISTINCT incident_gravite.class),",","/") as 'classification',
 incident_statut.nom,
 replace (group_concat (DISTINCT incident_application_impactee.Application_code_irt),",","/") as 'code_irt' ,
 replace (group_concat (DISTINCT incident_application_impactee.nom_appli),","," | ") as 'application',
@@ -623,8 +689,6 @@ cosip.plan_action,
 cosip.cause_racine_id,
 cosip.comment,
 incident_cause_racine.nom as 'cause_racine',
-incident_impact_enseigne.description_impact,
-incident_impact_enseigne.gravite_id,
 incident_impact_enseigne.date_debut, 
 incident_impact_enseigne.date_detection,
 incident_impact_enseigne.date_premier_com,
@@ -640,7 +704,7 @@ INNER JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.grav
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
-INNER JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
+left JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
 WHERE incident.id = '${id}';
 `
