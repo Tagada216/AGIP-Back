@@ -245,9 +245,30 @@ VALUES(
 	"${input.cosip_id}");
 `
 }
-
-
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
+	const valuesString = input.enseigne_impactee
+		.map(
+			enseigne => `(${idIncident},${enseigne},"${input.description_impact}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+		.join(",\n\t")
+
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	description_impact,
+	date_debut,
+	date_detection,
+	date_com_tdc,
+	date_qualif_p01,
+	date_premier_com,
+	date_fin)
+VALUES
+	${valuesString};
+`
+}
+
+
+export function CreationImpactEnseignesCosip(input, idIncident) {
 	var tab_impact = []
 
 	for(let i = 0; i <= input.enseigne_impactee.length; i++){
@@ -343,7 +364,8 @@ VALUES(
 	${idIncident}, 
 	"${application.code_irt}", 
 	"${application.trigramme}",
-	NULL);	
+	"${application.nom}"
+	);	
 `	
 	}
 	else
