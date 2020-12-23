@@ -39,7 +39,9 @@ import {
 	getCosipFormated,
 	getIdcosip,
 	getIncGravite,
-	UpdateCosip
+	UpdateCosip,
+	createAgence,
+	updateAgence
 } from "./data"
 
 // Définition du port du serveur
@@ -64,7 +66,13 @@ app.put("/api/main-courante", (req, res) => {
 app.put("/api/main-courante-agence", (req, res) => {
 	updateMainCouranteAgence(res, req.body)
 })
+app.put("/api/update-agence", (req, res) => {
+	updateAgence(req.body, res)
+})
 
+app.post("/api/create-agence", (req,res) =>{
+	createAgence(req.body,res)
+})
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
 })

@@ -490,7 +490,98 @@ INSERT INTO incident_application_impactee
 	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
+////////////////////////////////////
+///////////// AJOUT AGENCE /////////
+////////////////////////////////////
 
+
+export function CreationIncidentAgence(input) {
+	return `
+INSERT INTO incident(
+	description,
+	cause,
+	statut_id, 
+	priorite_id,
+	service_metier,
+	is_agence)
+VALUES(
+	"${input.description}",
+	"${input.cause}",
+	${input.statut_id},
+	${input.priorite_id},
+	"${input.service_metier}",
+	${input.is_agence}
+	);
+`
+}
+
+
+
+export function CreationReferencesAgence(input, idIncident) {
+	return `
+INSERT INTO incident_reference (
+	reference, 
+	incident_id)
+VALUES(
+	"${input.reference}",
+	${idIncident});
+`
+}
+
+
+
+export function CreationImpactEnseignesAgence(input, idIncident) {
+	return `
+INSERT INTO incident_impact_enseigne (
+	incident_id,
+	enseigne_id,
+	date_debut,
+	date_fin,
+	nombre_utilisateur
+	)
+VALUES(
+	${idIncident},
+	${input.enseigne_impactee},
+   "${input.date_debut}",
+   "${input.date_fin}",
+   ${input.nbUtilisateur}
+);
+`
+}
+
+
+///////////////////////////////////////
+/////////////// UPDATE AGENCE /////////
+///////////////////////////////////////
+
+
+export function UpdateIncidentAgence(input) {
+	return `
+UPDATE incident
+SET
+	priorite_id=${input.priorite_id},
+	cause="${input.cause}",
+	statut_id=${input.statut_id},
+	description="${input.description}",
+	service_metier="${input.service_metier}",
+	is_agence=${input.is_agence}
+WHERE id=${input.incident_id};
+`
+}
+
+
+
+export function UpdateIncidentImpactEnseigneAgence(input) {
+	return `
+UPDATE incident_impact_enseigne
+SET 
+	date_debut="${input.date_debut}",
+	date_fin="${input.date_fin}",
+	nombre_utilisateur=${input.nbUtilisateur},
+	enseigne_id=${input.enseigne_impactee}
+WHERE incident_id=${input.incident_id};	
+`
+}
 
 
 export function GetReferences(idIncident) {

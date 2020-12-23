@@ -395,6 +395,54 @@ export async function updateMainCourante(res, input) {
 
 }
 
+export async function createAgence(input) {
+
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION ---"))
+	// console.log(input);
+	// log("\n"+chalk.yellow(await sequelize.query(queries.CreationIncidentAgence(input))))
+	log("\n"+chalk.yellow("Insertion des incidents agence"))
+	const createNewIncidentAgence = await sequelize.query(queries.CreationIncidentAgence(input))
+	log("\n"+chalk.yellow("création de l'id"))
+	const idIncident = createNewIncidentAgence[1].lastID
+	const createRef = queries.CreationReferencesAgence(input,idIncident)
+	const createImpactEnseigne = queries.CreationImpactEnseignesAgence(input,idIncident)
+
+
+	// Insertion des références
+	log("\n"+chalk.yellow("Insertion des références incidents "))
+	await sequelize.query(createRef)
+
+	// Insertion des impacts enseignes
+	log("\n"+chalk.yellow("Insertion des ensegnes impactés "))
+	await sequelize.query(createImpactEnseigne)
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+
+	
+	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
+	// res.sendStatus(200)
+
+}
+
+export async function updateAgence(res) {
+
+	log("\n"+chalk.yellow("--- DEBUT DE L'INSERTION ---"))
+	
+	 const updateIncident = queries.UpdateIncidentAgence(res)
+	 const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigneAgence(res)
+
+	 log("\n"+chalk.yellow("Mise à jour des incidents"))
+	 await sequelize.query(updateIncident)
+	 log("\n"+chalk.yellow("Mise à jour des enseignes impactées"))
+	 await sequelize.query(updateIncidentImpactEnseigne)
+	
+
+	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+
+	
+	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
+	// res.sendStatus(200)
+}
+
 export async function updateMainCouranteAgence(res, input) {
 
 
