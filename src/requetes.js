@@ -177,26 +177,7 @@ VALUES(
 }
 
 
-export function CreationIncidentAgence(input) {
-	return `
-INSERT INTO incident(
-	description,
-	cause,
-	statut_id, 
-	priorite_id, 
-	is_contournement,
-	description_contournement,
-	is_faux_incident)
-VALUES(
-	"${input.description}",
-	"${input.cause}",
-	${input.statut_id},
-	${input.priorite_id},
-	${input.is_contournement ? 1 : 0},
-	"${input.description_contournement}",
-	${input.is_faux_incident ? 1 : 0});
-`
-}
+
 
 
 export function CreationReferences(input, idIncident) {
@@ -210,16 +191,7 @@ VALUES
 }
 
 
-export function CreationReferencesAgence(input, idIncident) {
-	return `
-INSERT INTO incident_reference (
-	reference, 
-	incident_id)
-VALUES(
-	"${input.references}",
-	${idIncident});
-`
-}
+
 
 
 export function CreationImpactEnseignes(input, idIncident) {
@@ -242,23 +214,7 @@ VALUES
 }
 
 
-export function CreationImpactEnseignesAgence(input, idIncident) {
-	return `
-INSERT INTO incident_impact_enseigne (
-	incident_id,
-	enseigne_id,
-	description_impact,
-	date_debut,
-	date_fin)
-VALUES(
-	${idIncident},
-	${input.enseigne_impactee},
-	"${input.description_impact}",
-	"${input.date_debut}",
-	${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""}
-);
-`
-}
+
 
 
 export function CreationIncidentMainCourante(input) {
