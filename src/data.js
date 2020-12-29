@@ -324,7 +324,7 @@ export async function UpdateCosip(res, input){
 
 	// Insertion des impacts enseignes
 	log("\n"+chalk.yellow("Insertion des impacts enseignes"))
-	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, input.incident_id))
+	await sequelize.query(queries.CreationImpactEnseignesCosip(input, input.incident_id))
 
 	// Insertion des applications impactées
 	log("\n"+chalk.yellow("---- Insertion des applications impactées --- "))

@@ -82,6 +82,13 @@ SELECT incident.id,
 	incident_impact_enseigne.description_impact as 'description_impact', incident.cause as 'cause', 
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
 	incident.plan_action as 'plan_action', 
+	incident_gravite.class as "classification",
+	replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
+	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
+	replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
+	replace (group_concat (DISTINCT incident_impact_enseigne.gravite_id),",","/") as 'gravite_id',
+	replace (group_concat (DISTINCT incident_gravite.nom),",","/") as 'gravite_nom',
+	replace (group_concat (DISTINCT incident_gravite.class),",","/") as 'classification',
 	incident_impact_enseigne.date_detection as 'date_detection',
 	incident_impact_enseigne.date_com_tdc as 'date_communication_tdc', 
 	incident_impact_enseigne.date_qualif_p01 as 'date_qualif_p01',
@@ -96,6 +103,7 @@ FROM ((((incident_reference join incident on incident.id = incident_reference.in
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+	left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
 	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
