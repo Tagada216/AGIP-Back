@@ -115,12 +115,12 @@ ORDER BY incident.id asc;
 
 export function Applications(keyword) {
 	return `
-SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
-FROM application left join application_alias
-	on application.code_irt = application_alias.code_irt 
-	and application.trigramme = application_alias.trigramme
-WHERE application.code_irt like "%${keyword}%"
-	or application.trigramme like "%${keyword}%"
+SELECT application2.trigramme || '-' || application2.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
+FROM application2 left join application_alias
+	on application2.code_irt = application_alias.code_irt 
+	and application2.trigramme = application_alias.trigramme
+WHERE application2.code_irt like "%${keyword}%"
+	or application2.trigramme like "%${keyword}%"
 	or libelle_court like "%${keyword}%"
 	or nom like "%${keyword}%"
 	or nom_usage like "%${keyword}%";
@@ -131,24 +131,24 @@ WHERE application.code_irt like "%${keyword}%"
 export function AllApplications() {
 	return `
 SELECT 
-	coalesce(application.trigramme,'') as trigramme, 
-	coalesce(application.code_irt,'') as code_irt,
+	coalesce(application2.trigramme,'') as trigramme, 
+	coalesce(application2.code_irt,'') as code_irt,
 	coalesce(libelle_court,'') as libelle_court, 
 	coalesce(nom,'') as nom, 
 	coalesce(nom_usage,'') as nom_usage,
-	application.trigramme || '-' || 
-		application.code_irt || ' : ' || 
+	application2.trigramme || '-' || 
+		application2.code_irt || ' : ' || 
 		coalesce(libelle_court, '') || ' (' || 
 		coalesce(nom, '') || ')' || 
 		coalesce('[' || nom_usage || ']', '')  as display_name,
 	CPT
-FROM (application LEFT JOIN application_alias
-	ON application.code_irt = application_alias.code_irt 
-	AND application.trigramme = application_alias.trigramme)
+FROM (application2 LEFT JOIN application_alias
+	ON application2.code_irt = application_alias.code_irt 
+	AND application2.trigramme = application_alias.trigramme)
 	LEFT JOIN (
 		SELECT application_trigramme as 'TRG', application_code_irt as 'IRT', count(*) as 'CPT' from incident_application_impactee 
 		GROUP BY application_trigramme, application_code_irt
-	) ON application.trigramme = TRG and application.code_irt = IRT
+	) ON application2.trigramme = TRG and application2.code_irt = IRT
 ORDER BY cpt DESC
 `
 }
@@ -466,7 +466,8 @@ VALUES(
 	${incidentId}, 
 	"${application.code_irt}", 
 	"${application.trigramme}",
-	NULL);	
+	"${application.nom}"
+	);	
 `	
 	}
 	else
