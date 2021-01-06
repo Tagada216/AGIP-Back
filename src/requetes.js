@@ -34,7 +34,7 @@ SELECT incident.id,
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', 
-	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
+	coalesce(replace(group_concat(DISTINCT application2.nom),","," | "),incident.import_code_irt) as 'Application', 
 	incident.description as Description, 
 	incident_priorite.priorite as Priorité, 
 	incident_statut.nom as Statut, 
@@ -55,8 +55,8 @@ FROM (((((incident_reference join incident on incident.id = incident_reference.i
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id) 
 	join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	left join application on application.code_irt = incident_application_impactee.Application_code_irt 
-		and application.trigramme = incident_application_impactee.Application_trigramme
+	left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt 
+		and application2.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id desc;
@@ -83,6 +83,13 @@ SELECT incident.id,
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
 	incident.plan_action as 'plan_action', 
 	incident_gravite.class as "classification",
+	replace(group_concat(DISTINCT application2.trigramme || '-' || 
+	application2.code_irt || ' : ' || 
+	coalesce(libelle_court, '') || ' (' || 
+	coalesce(application2.nom, '') || ')'
+	),",","|||") as 'display_name',
+	application2.code_irt as 'code_irt',
+	application2.trigramme,
 	replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
 	replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
@@ -97,15 +104,14 @@ SELECT incident.id,
 	incident.is_faux_incident as 'is_faux_incident',
 	incident.is_contournement as 'is_contournement', 
 	incident.cosip_id,
-	incident.description_contournement as 'description_contournement',
-	replace(group_concat(DISTINCT application.nom ),",","|||") as 'display_name'
+	incident.description_contournement as 'description_contournement'
 FROM ((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 	left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
+	left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt AND application2.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
@@ -460,17 +466,19 @@ export function UpdateReferences(input) {
 export function UpdateCreationApplicationsImpactees(application, incidentId){
 	console.log(application)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
+		console.log("Je suis dans le If car je suis connu")
 		return `
 INSERT INTO incident_application_impactee
 VALUES(
 	${incidentId}, 
 	"${application.code_irt}", 
 	"${application.trigramme}",
-	"${application.nom}"
+	"${application.display_name}"
 	);	
 `	
 	}
 	else
+	console.log("Je suis dans le else car je suis inconnu")
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${incidentId}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
