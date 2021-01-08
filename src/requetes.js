@@ -88,8 +88,8 @@ SELECT incident.id,
 	coalesce(libelle_court, '') || ' (' || 
 	coalesce(application2.nom, '') || ')'
 	),",","|||") as 'display_name',
-	application2.code_irt as 'code_irt',
-	application2.trigramme,
+	replace (group_concat (DISTINCT application2.code_irt),",","/") as 'code_irt',
+	replace (group_concat (DISTINCT application2.trigramme),",","/") as 'trigramme',
 	replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
 	replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
@@ -386,7 +386,7 @@ VALUES(
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
-	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application2 WHERE code_irt LIKE 'F%')
 `
 }
 
@@ -465,6 +465,7 @@ export function UpdateReferences(input) {
 }
 export function UpdateCreationApplicationsImpactees(application, incidentId){
 	console.log(application)
+	console.log("Le code irt est ",application.code_irt)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
 		console.log("Je suis dans le If car je suis connu")
 		return `
@@ -482,7 +483,7 @@ VALUES(
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${incidentId}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
-	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application2 WHERE code_irt LIKE 'F%')
 `
 }
 ////////////////////////////////////

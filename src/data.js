@@ -254,7 +254,7 @@ export async function insertMainCourante(res, input) {
 	// Insertion des applications impactées
 	log("\n"+chalk.yellow("Insertion des applications impactées"))
 	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+		await sequelize.query(queries.CreationApplicationsImpactees(input, appImpactee, idIncident))
 	}
 
 	log("\n"+chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
