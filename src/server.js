@@ -124,6 +124,7 @@ app.get("/api/agence-isolees/formated", (req, res) => {
 ////////////////////////////////////
 
 // Récupération de l'ind COSIP dans la table incident 
+// Récupération de l'ind COSIP dans la table incident
 
 app.get("/api/id-cosip/:id", (req,res)=>{
 	var params = [req.params.id]
