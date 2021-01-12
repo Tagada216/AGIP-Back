@@ -12,7 +12,7 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb",
+	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/Projects-TDC/TDC_AGIPROS_BDD_Vide.sdb",
 	define: {
 		timestamps: false
 	}
@@ -151,6 +151,13 @@ export function getMainCourante(res, id) {
 
 export function getFormatedMainCourante(res, id) {
 	sequelize.query(queries.FormatedMainCourante(id)).then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
+}
+
+
+export function getFormatedAgence(res) {
+	sequelize.query(queries.FormatedAgence()).then(([results]) => {
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }

@@ -41,7 +41,8 @@ import {
 	getIncGravite,
 	UpdateCosip,
 	createAgence,
-	updateAgence
+	updateAgence,
+	getFormatedAgence
 } from "./data"
 
 // Définition du port du serveur
@@ -73,6 +74,8 @@ app.put("/api/update-agence", (req, res) => {
 app.post("/api/create-agence", (req,res) =>{
 	createAgence(req.body,res)
 })
+
+
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
 })
@@ -110,6 +113,10 @@ app.get("/api/applications", (req, res) => {
 
 app.get("/api/probs", (req, res) => {
 	getProbs(res)
+})
+
+app.get("/api/agence-isolees/formated", (req, res) => {
+	getFormatedAgence(res)
 })
 
 /////////////////////////////////////

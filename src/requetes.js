@@ -161,6 +161,31 @@ FROM incident_reference
 	`
 }
 
+
+export function FormatedAgence() {
+	return `
+SELECT incident.id, 
+	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
+	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne',
+	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
+	incident_statut.nom as Statut, 
+	strftime("%d/%m/%Y %H:%M:%S",incident_impact_enseigne.date_fin) as 'Date de fin',
+	incident_priorite.priorite as Priorité, 
+	incident.cause as Cause,
+	incident.description as 'Description',  
+	incident.service_metier as 'Service métier',
+	incident_impact_enseigne.nombre_utilisateur as 'Nombre utilisateur'
+FROM (((((incident_reference join incident on incident.id = incident_reference.incident_id) 
+	join incident_statut on incident.statut_id = incident_statut.id) 
+	join incident_priorite on incident.priorite_id = incident_priorite.id)
+	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id) 
+	join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+wHERE incident.is_agence = true
+GROUP BY incident_reference.incident_id
+ORDER BY incident.id desc;
+`
+}
+
 ////////////////////////////////////
 ///////////// AJOUT ////////////////
 ////////////////////////////////////
