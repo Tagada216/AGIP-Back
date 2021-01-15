@@ -167,19 +167,22 @@ export function FormatedAgence() {
 SELECT incident.id, 
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne',
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application',
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
 	incident_statut.nom as Statut, 
 	strftime("%d/%m/%Y %H:%M:%S",incident_impact_enseigne.date_fin) as 'Date de fin',
 	incident_priorite.priorite as Priorité, 
 	incident.cause as Cause,
 	incident.description as 'Description',  
-	incident.service_metier as 'Service métier',
+	incident_impact_enseigne.description_impact as 'Impact', 
 	incident_impact_enseigne.nombre_utilisateur as 'Nombre utilisateur'
 FROM (((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id) 
 	join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
+	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 wHERE incident.is_agence = true
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id desc;
@@ -513,14 +516,12 @@ INSERT INTO incident(
 	cause,
 	statut_id, 
 	priorite_id,
-	service_metier,
 	is_agence)
 VALUES(
 	"${input.description}",
 	"${input.cause}",
 	${input.statut_id},
 	${input.priorite_id},
-	"${input.service_metier}",
 	${input.is_agence}
 	);
 `
@@ -548,17 +549,42 @@ INSERT INTO incident_impact_enseigne (
 	enseigne_id,
 	date_debut,
 	date_fin,
+	description_impact,
 	nombre_utilisateur
 	)
 VALUES(
 	${idIncident},
 	${input.enseigne_impactee},
-   "${input.date_debut}",
-   "${input.date_fin}",
-   ${input.nbUtilisateur}
+	datetime("${input.date_debut}","localtime"),
+	datetime("${input.date_fin}","localtime"),
+	"${input.description_impact}",
+    ${input.nbUtilisateur}
 );
 `
 }
+
+
+export function CreationApplicationsImpacteesAgence(application, idIncident){
+	console.log(application)
+	if (application.trigramme !== undefined && application.code_irt !== undefined){
+		return `
+INSERT INTO incident_application_impactee
+VALUES(
+	${idIncident}, 
+	"${application.code_irt}", 
+	"${application.trigramme}",
+	"${application.nom}"
+	);	
+`	
+	}
+	else
+		return `
+INSERT INTO incident_application_impactee
+	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application}" 
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
+`
+}
+
 
 
 ///////////////////////////////////////
@@ -574,7 +600,6 @@ SET
 	cause="${input.cause}",
 	statut_id=${input.statut_id},
 	description="${input.description}",
-	service_metier="${input.service_metier}",
 	is_agence=${input.is_agence}
 WHERE id=${input.incident_id};
 `
@@ -586,14 +611,20 @@ export function UpdateIncidentImpactEnseigneAgence(input) {
 	return `
 UPDATE incident_impact_enseigne
 SET 
-	date_debut="${input.date_debut}",
-	date_fin="${input.date_fin}",
+	date_debut=datetime("${input.date_debut}","localtime"),
+	date_fin=datetime("${input.date_fin}","localtime"),
 	nombre_utilisateur=${input.nbUtilisateur},
-	enseigne_id=${input.enseigne_impactee}
+	enseigne_id=${input.enseigne_impactee},
+	description_impact="${input.description_impact}"
 WHERE incident_id=${input.incident_id};	
 `
 }
 
+export function GetIdIncident(idIncident){
+	return `SELECT incident.id
+	FROM incident
+	WHERE incident.id = ${idIncident}`
+}
 
 export function GetReferences(idIncident) {
 	return `
