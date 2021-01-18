@@ -770,8 +770,13 @@ replace (group_concat (DISTINCT incident_impact_enseigne.gravite_id),",","/") as
 replace (group_concat (DISTINCT incident_gravite.nom),",","/") as 'gravite_nom',
 replace (group_concat (DISTINCT incident_gravite.class),",","/") as 'classification',
 incident_statut.nom,
-replace (group_concat (DISTINCT incident_application_impactee.Application_code_irt),",","/") as 'code_irt' ,
-replace (group_concat (DISTINCT incident_application_impactee.nom_appli),","," | ") as 'application',
+replace(group_concat(DISTINCT application2.trigramme || '-' || 
+application2.code_irt || ' : ' || 
+coalesce(libelle_court, '') || ' (' || 
+coalesce(application2.nom, '') || ')'
+),",","|||") as 'display_name',
+replace (group_concat (DISTINCT application2.code_irt),",","/") as 'code_irt',
+replace (group_concat (DISTINCT application2.trigramme),",","/") as 'trigramme',
 cosip.cosip_resume, 
 cosip.plan_action,
 cosip.cause_racine_id,
@@ -788,11 +793,12 @@ INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
 INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
 INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 INNER JOIN cosip ON incident.cosip_id=cosip.id
-INNER JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
+left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
+left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
+left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt AND application2.trigramme = incident_application_impactee.Application_trigramme
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
-left JOIN incident_application_impactee ON incident.id=incident_application_impactee.incident_id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
 WHERE incident.id = '${id}';
 `
@@ -806,7 +812,7 @@ export function getCosipFormated(){
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Réference', 
 	incident_impact_enseigne.date_debut as 'date_debut',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
-	replace(group_concat(DISTINCT application.nom ),","," | ") as 'Application(s)',
+	coalesce(replace(group_concat(DISTINCT application2.nom),","," | "),incident.import_code_irt) as 'Application', 
 	cosip.cosip_resume as "Résumé de l'incident",
 	incident_priorite.priorite as 'priorité',
 	incident_statut.nom as 'Statut',
@@ -836,7 +842,8 @@ INNER JOIN incident_gravite ON incident_gravite.id = incident_impact_enseigne.gr
 INNER JOIN  incident_priorite on incident.priorite_id = incident_priorite.id
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
+left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt 
+and application2.trigramme = incident_application_impactee.Application_trigramme
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`
