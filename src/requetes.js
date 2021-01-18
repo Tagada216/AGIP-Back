@@ -34,7 +34,7 @@ SELECT incident.id,
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Référence', 
 	strftime("%d/%m/%Y %H:%M:%S", incident_impact_enseigne.date_debut) as 'Date de début', 
 	replace(group_concat(DISTINCT enseigne.nom),",","/") as 'Enseigne', 
-	coalesce(replace(group_concat(DISTINCT application2.nom),","," | "),incident.import_code_irt) as 'Application', 
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
 	incident.description as Description, 
 	incident_priorite.priorite as Priorité, 
 	incident_statut.nom as Statut, 
@@ -55,8 +55,8 @@ FROM (((((incident_reference join incident on incident.id = incident_reference.i
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id) 
 	join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt 
-		and application2.trigramme = incident_application_impactee.Application_trigramme
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt 
+		and application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id desc;
@@ -83,13 +83,13 @@ SELECT incident.id,
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
 	incident.plan_action as 'plan_action', 
 	incident_gravite.class as "classification",
-	replace(group_concat(DISTINCT application2.trigramme || '-' || 
-	application2.code_irt || ' : ' || 
+	replace(group_concat(DISTINCT application.trigramme || '-' || 
+	application.code_irt || ' : ' || 
 	coalesce(libelle_court, '') || ' (' || 
-	coalesce(application2.nom, '') || ')'
+	coalesce(application.nom, '') || ')'
 	),",","|||") as 'display_name',
-	replace (group_concat (DISTINCT application2.code_irt),",","/") as 'code_irt',
-	replace (group_concat (DISTINCT application2.trigramme),",","/") as 'trigramme',
+	replace (group_concat (DISTINCT application.code_irt),",","/") as 'code_irt',
+	replace (group_concat (DISTINCT application.trigramme),",","/") as 'trigramme',
 	replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") as 'enseigne_id',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
 	replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
@@ -111,7 +111,7 @@ FROM ((((incident_reference join incident on incident.id = incident_reference.in
 	join incident_impact_enseigne on incident.id = incident_impact_enseigne.incident_id join enseigne on enseigne.id = incident_impact_enseigne.enseigne_id)
 	left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 	left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-	left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt AND application2.trigramme = incident_application_impactee.Application_trigramme
+	left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 ${(id === undefined ? "" : "WHERE incident.id = "+id)}
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
@@ -121,12 +121,12 @@ ORDER BY incident.id asc;
 
 export function Applications(keyword) {
 	return `
-SELECT application2.trigramme || '-' || application2.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
-FROM application2 left join application_alias
-	on application2.code_irt = application_alias.code_irt 
-	and application2.trigramme = application_alias.trigramme
-WHERE application2.code_irt like "%${keyword}%"
-	or application2.trigramme like "%${keyword}%"
+SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
+FROM application left join application_alias
+	on application.code_irt = application_alias.code_irt 
+	and application.trigramme = application_alias.trigramme
+WHERE application.code_irt like "%${keyword}%"
+	or application.trigramme like "%${keyword}%"
 	or libelle_court like "%${keyword}%"
 	or nom like "%${keyword}%"
 	or nom_usage like "%${keyword}%";
@@ -137,24 +137,24 @@ WHERE application2.code_irt like "%${keyword}%"
 export function AllApplications() {
 	return `
 SELECT 
-	coalesce(application2.trigramme,'') as trigramme, 
-	coalesce(application2.code_irt,'') as code_irt,
+	coalesce(application.trigramme,'') as trigramme, 
+	coalesce(application.code_irt,'') as code_irt,
 	coalesce(libelle_court,'') as libelle_court, 
 	coalesce(nom,'') as nom, 
 	coalesce(nom_usage,'') as nom_usage,
-	application2.trigramme || '-' || 
-		application2.code_irt || ' : ' || 
+	application.trigramme || '-' || 
+		application.code_irt || ' : ' || 
 		coalesce(libelle_court, '') || ' (' || 
 		coalesce(nom, '') || ')' || 
 		coalesce('[' || nom_usage || ']', '')  as display_name,
 	CPT
-FROM (application2 LEFT JOIN application_alias
-	ON application2.code_irt = application_alias.code_irt 
-	AND application2.trigramme = application_alias.trigramme)
+FROM (application LEFT JOIN application_alias
+	ON application.code_irt = application_alias.code_irt 
+	AND application.trigramme = application_alias.trigramme)
 	LEFT JOIN (
 		SELECT application_trigramme as 'TRG', application_code_irt as 'IRT', count(*) as 'CPT' from incident_application_impactee 
 		GROUP BY application_trigramme, application_code_irt
-	) ON application2.trigramme = TRG and application2.code_irt = IRT
+	) ON application.trigramme = TRG and application.code_irt = IRT
 ORDER BY cpt DESC
 `
 }
@@ -386,7 +386,7 @@ VALUES(
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
-	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application2 WHERE code_irt LIKE 'F%')
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
 
@@ -483,7 +483,7 @@ VALUES(
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${incidentId}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
-	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application2 WHERE code_irt LIKE 'F%')
+	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
 ////////////////////////////////////
@@ -770,13 +770,13 @@ replace (group_concat (DISTINCT incident_impact_enseigne.gravite_id),",","/") as
 replace (group_concat (DISTINCT incident_gravite.nom),",","/") as 'gravite_nom',
 replace (group_concat (DISTINCT incident_gravite.class),",","/") as 'classification',
 incident_statut.nom,
-replace(group_concat(DISTINCT application2.trigramme || '-' || 
-application2.code_irt || ' : ' || 
+replace(group_concat(DISTINCT application.trigramme || '-' || 
+application.code_irt || ' : ' || 
 coalesce(libelle_court, '') || ' (' || 
-coalesce(application2.nom, '') || ')'
+coalesce(application.nom, '') || ')'
 ),",","|||") as 'display_name',
-replace (group_concat (DISTINCT application2.code_irt),",","/") as 'code_irt',
-replace (group_concat (DISTINCT application2.trigramme),",","/") as 'trigramme',
+replace (group_concat (DISTINCT application.code_irt),",","/") as 'code_irt',
+replace (group_concat (DISTINCT application.trigramme),",","/") as 'trigramme',
 cosip.cosip_resume, 
 cosip.plan_action,
 cosip.cause_racine_id,
@@ -796,7 +796,7 @@ INNER JOIN cosip ON incident.cosip_id=cosip.id
 left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
-left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt AND application2.trigramme = incident_application_impactee.Application_trigramme
+left join application on application.code_irt = incident_application_impactee.Application_code_irt AND application.trigramme = incident_application_impactee.Application_trigramme
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
@@ -812,7 +812,7 @@ export function getCosipFormated(){
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Réference', 
 	incident_impact_enseigne.date_debut as 'date_debut',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
-	coalesce(replace(group_concat(DISTINCT application2.nom),","," | "),incident.import_code_irt) as 'Application', 
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
 	cosip.cosip_resume as "Résumé de l'incident",
 	incident_priorite.priorite as 'priorité',
 	incident_statut.nom as 'Statut',
@@ -842,8 +842,8 @@ INNER JOIN incident_gravite ON incident_gravite.id = incident_impact_enseigne.gr
 INNER JOIN  incident_priorite on incident.priorite_id = incident_priorite.id
 INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
-left join application2 on application2.code_irt = incident_application_impactee.Application_code_irt 
-and application2.trigramme = incident_application_impactee.Application_trigramme
+left join application on application.code_irt = incident_application_impactee.Application_code_irt 
+and application.trigramme = incident_application_impactee.Application_trigramme
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`
