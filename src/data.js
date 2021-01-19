@@ -12,7 +12,7 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb",
+	storage: "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD_VideSansPBavecApp.sdb",
 	define: {
 		timestamps: false
 	}
@@ -493,7 +493,12 @@ export async function statOrigineIncidentsMajeurs(res){
 	res.json({})
 }
 
-
+// Functions poour les Statistique 
+export function statGetPriorite(res){
+	sequelize.query("SELECT priorite_id FROM incident;").then(([results]) => {
+		res.json(results)
+	})
+}
 // export const Changement = sequelize.define("changements", {
 // 	// attributes
 // 	reference: {

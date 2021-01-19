@@ -41,7 +41,8 @@ import {
 	getIncGravite,
 	UpdateCosip,
 	createAgence,
-	updateAgence
+	updateAgence,
+	statGetPriorite
 } from "./data"
 
 // Définition du port du serveur
@@ -225,3 +226,7 @@ app.get("/api/probs/coper", (req,res) =>{
 app.get("/api/stat/orig-inc-maj", (req,res) =>{
 	statOrigineIncidentsMajeurs(res)
 })
+
+app.get("/api/stat/priorites", (req,res) =>{
+	statGetPriorite(res)
+} )
