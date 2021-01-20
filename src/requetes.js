@@ -378,7 +378,7 @@ VALUES(
 	${idIncident}, 
 	"${application.code_irt}", 
 	"${application.trigramme}",
-	"${application.nom}"
+	"${application.display_name}"
 	);	
 `	
 	}

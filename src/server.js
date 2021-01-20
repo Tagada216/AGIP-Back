@@ -42,7 +42,8 @@ import {
 	UpdateCosip,
 	createAgence,
 	updateAgence,
-	statGetPriorite
+	statGetPriorite,
+	statGetApplications,
 } from "./data"
 
 // Définition du port du serveur
@@ -230,3 +231,8 @@ app.get("/api/stat/orig-inc-maj", (req,res) =>{
 app.get("/api/stat/priorites", (req,res) =>{
 	statGetPriorite(res)
 } )
+
+app.get("/api/stat/applications", (req,res) =>{
+	statGetApplications(res)
+} )
+

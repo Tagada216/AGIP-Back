@@ -493,12 +493,22 @@ export async function statOrigineIncidentsMajeurs(res){
 	res.json({})
 }
 
-// Functions poour les Statistique 
+// Functions poour les Statistiques
+
+//Récupération des priorité dans la table incident pour stats
 export function statGetPriorite(res){
 	sequelize.query("SELECT priorite_id FROM incident;").then(([results]) => {
 		res.json(results)
 	})
 }
+
+export function statGetApplications(res){
+	sequelize.query("select application_code_irt, count(application_code_irt) as 'nb_occurence', nom_appli from incident_application_impactee group BY application_code_irt;").then(([results]) => {
+		res.json(results)
+	})
+}
+
+
 // export const Changement = sequelize.define("changements", {
 // 	// attributes
 // 	reference: {
