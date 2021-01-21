@@ -507,6 +507,11 @@ export function statGetApplications(res){
 		res.json(results)
 	})
 }
+export function statGetMajInc(res){
+	sequelize.query("SELECT count(gravite_id) as 'nb_majeur' FROM incident_impact_enseigne WHERE gravite_id=3;").then(([results]) => {
+		res.json(results)
+	})
+}
 
 
 // export const Changement = sequelize.define("changements", {

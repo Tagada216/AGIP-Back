@@ -44,6 +44,7 @@ import {
 	updateAgence,
 	statGetPriorite,
 	statGetApplications,
+	statGetMajInc
 } from "./data"
 
 // Définition du port du serveur
@@ -236,3 +237,6 @@ app.get("/api/stat/applications", (req,res) =>{
 	statGetApplications(res)
 } )
 
+app.get("/api/stat/majeur", (req,res) => {
+	statGetMajInc(res)
+})
