@@ -643,9 +643,9 @@ export function CosiptoIncident(input, idCosip){
 	return `
 	UPDATE incident
 	SET
-		cosip_id="${idCosip}",
+		cosip_id=${idCosip},
 		statut_id="${input.statut_id}",
-		priorite_id="${input.priorite_id}",
+		priorite_id=${input.priorite_id},
 		is_contournement="${input.is_contournement ? 1 : 0}",
 		is_faux_incident="${input.is_faux_incident ? 1 : 0}",
 		description="${input.description}",
@@ -658,6 +658,7 @@ export function CosiptoIncident(input, idCosip){
 	WHERE id ="${input.incident_id}"
 	`
 }
+
 
 export function AddImpactEnseignesCosip(input, idIncident){
 	var tab_impact = []
