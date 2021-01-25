@@ -41,7 +41,11 @@ import {
 	getIncGravite,
 	UpdateCosip,
 	createAgence,
-	updateAgence
+	updateAgence,
+	statGetPriorite,
+	statGetApplications,
+	statGetMajInc,
+	getFormatedAgence
 } from "./data"
 
 // Définition du port du serveur
@@ -73,6 +77,8 @@ app.put("/api/update-agence", (req, res) => {
 app.post("/api/create-agence", (req,res) =>{
 	createAgence(req.body,res)
 })
+
+
 app.post("/api/main-courante", (req, res) => {
 	createMainCourante(res, req.body)
 })
@@ -112,11 +118,16 @@ app.get("/api/probs", (req, res) => {
 	getProbs(res)
 })
 
+app.get("/api/agence-isolees/formated", (req, res) => {
+	getFormatedAgence(res)
+})
+
 /////////////////////////////////////
 //Chemins d'obtentions COSIP ///////
 ////////////////////////////////////
 
 // Récupération de l'ind COSIP dans la table incident 
+// Récupération de l'ind COSIP dans la table incident
 
 app.get("/api/id-cosip/:id", (req,res)=>{
 	var params = [req.params.id]
@@ -224,4 +235,16 @@ app.get("/api/probs/coper", (req,res) =>{
 ////////////////////////////////////////
 app.get("/api/stat/orig-inc-maj", (req,res) =>{
 	statOrigineIncidentsMajeurs(res)
+})
+
+app.get("/api/stat/priorites", (req,res) =>{
+	statGetPriorite(res)
+} )
+
+app.get("/api/stat/applications", (req,res) =>{
+	statGetApplications(res)
+} )
+
+app.get("/api/stat/majeur", (req,res) => {
+	statGetMajInc(res)
 })
