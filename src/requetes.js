@@ -318,21 +318,21 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 			tab_impact.push({
 				enseigne_id: 1,
 				desc: input.description_impactBDDF,
-				gravite: input.gravite_idBDDF
+				gravite: input.impact_avereBDDF
 			})
 		}
 		if (input.enseigne_impactee[i] == 2){
 			tab_impact.push({
 				enseigne_id: 2,
 				desc: input.description_impactCDN,
-				gravite: input.gravite_idCDN
+				gravite: input.impact_avereCDN
 			})
 		}
 		if (input.enseigne_impactee[i] == 3){
 			tab_impact.push({
 				enseigne_id: 3,
 				desc: input.description_impactBPF,
-				gravite: input.gravite_idBPF
+				gravite: input.impact_avereBPF
 			})
 		}	
 	}
