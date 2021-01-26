@@ -492,10 +492,7 @@ export function UpdateReferences(input) {
 `
 }
 export function UpdateCreationApplicationsImpactees(application, incidentId){
-	console.log(application)
-	console.log("Le code irt est ",application.code_irt)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
-		console.log("Je suis dans le If car je suis connu")
 		return `
 INSERT INTO incident_application_impactee
 VALUES(
@@ -507,7 +504,6 @@ VALUES(
 `	
 	}
 	else
-	console.log("Je suis dans le else car je suis inconnu")
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${incidentId}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
@@ -575,7 +571,6 @@ VALUES(
 
 
 export function CreationApplicationsImpacteesAgence(application, idIncident){
-	console.log(application)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
 		return `
 INSERT INTO incident_application_impactee
@@ -669,7 +664,9 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 ///////////////////////////////////////
 /////////////// COSIP /////////////
 ///////////////////////////////////////
-//get is cosip 
+
+
+//get id  d'un cosip 
 export function getIdcosip(input){
 	return `
 SELECT incident.cosip_id
@@ -715,7 +712,7 @@ export function CosiptoIncident(input, idCosip){
 	`
 }
 
-
+// Système de répartition des données idépendante pour les enseignes correspondante 
 export function AddImpactEnseignesCosip(input, idIncident){
 	var tab_impact = []
 
@@ -768,9 +765,8 @@ VALUES
 `
 }
 
-/////// UPDATE /////////////
+/////// UPDATE  COSIP /////////////
 ////////////////////////
-
 export function UpdateCosip(input){
 	return `
 	UPDATE cosip
@@ -801,10 +797,10 @@ export function UpdateCosiptoIncident(input){
 	WHERE id ="${input.incident_id}"
 	`
 }
+////////////////////////////////////////
+/// Requêtes de récupération  COSIP ///
+/////////////////////////////////////
 
-//Fin d'ajout
-
-/// Requêtes de récupération  COSIP 
 export function getCosipById(id){
 	return `
 SELECT 
