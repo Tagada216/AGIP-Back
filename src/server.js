@@ -45,7 +45,9 @@ import {
 	statGetPriorite,
 	statGetApplications,
 	statGetMajInc,
-	getFormatedAgence
+	getFormatedAgence,
+	getCosipByWeek,
+	getCosipUrlWeek
 } from "./data"
 
 // Définition du port du serveur
@@ -126,8 +128,8 @@ app.get("/api/agence-isolees/formated", (req, res) => {
 //Chemins d'obtentions COSIP ///////
 ////////////////////////////////////
 
-// Récupération de l'ind COSIP dans la table incident 
-// Récupération de l'ind COSIP dans la table incident
+// Récupération de l'in COSIP dans la table incident 
+
 
 app.get("/api/id-cosip/:id", (req,res)=>{
 	var params = [req.params.id]
@@ -144,6 +146,16 @@ app.get("/api/cosip", (req, res) => {
 app.get("/api/cosip/:id", (req,res) => {
 	var params = [req.params.id]
 	getCosipById(res, params[0])
+})
+
+// Obtention des incidents au cosip lié à la semaine 
+app.get("/api/cosip/week/:week", (req,res) =>{
+	var params = [req.params.week]
+	getCosipByWeek(res, params[0])
+} )
+//Obtention de l'url à afficher au cosip => Par semaine 
+app.get("/api/cosip/url/week", (req, res) => {
+	getCosipUrlWeek(res)
 })
 ////////////////////////////////////////
 //Chemins d'ajout des incidents dans le cosip 

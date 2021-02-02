@@ -13,7 +13,9 @@ const log = console.log
 const Sequelize = require("sequelize")
 const sequelize = new Sequelize({
 	dialect: "sqlite",
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb",
+	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
+	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
+	storage: "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb",
 	define: {
 		timestamps: false
 	}
@@ -91,6 +93,16 @@ export function getIdcosip(res, id) {
 	})
 }
 
+export function getCosipByWeek(res, week){
+	sequelize.query(queries.getCosipByWeek(week)).then(([results])=>{
+		res.json(results)
+	})
+}
+export function getCosipUrlWeek(res){
+	sequelize.query("select url_cosip from cosip_week;").then(([results])=>{
+		res.json(results)
+	})
+}
 export function getReference(res) {
 	sequelize.query("select reference, incident_id from incident_reference;").then(([results]) => {
 		res.json(results)

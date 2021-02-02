@@ -400,6 +400,7 @@ VALUES(
 export function CreationApplicationsImpactees(application, idIncident){
 	console.log(application)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
+		console.log("Je suis CONNU je rentre dans le IF")
 		return `
 INSERT INTO incident_application_impactee
 VALUES(
@@ -411,6 +412,7 @@ VALUES(
 `	
 	}
 	else
+	console.log("Je suis INCONNU je rentre dans le ELSE")
 		return `
 INSERT INTO incident_application_impactee
 	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
@@ -681,13 +683,15 @@ INSERT INTO cosip (
 	plan_action,
 	cause_racine_id,
 	comment,
-	cosip_resume
+	cosip_resume,
+	semaine_cosip
 	)
 VALUES(
 	"${input.plan_action}",
 	"${input.cause_racine_id}",
 	"${input.commentaire}",
-	"${input.cosip_resume}"
+	"${input.cosip_resume}",
+	"${input.semaine_cosip}"
 );
 `
 }
@@ -834,6 +838,7 @@ cosip.cosip_resume,
 cosip.plan_action,
 cosip.cause_racine_id,
 cosip.comment,
+cosip.semaine_cosip,
 incident_cause_racine.nom as 'cause_racine',
 incident_impact_enseigne.date_debut, 
 incident_impact_enseigne.date_detection,
@@ -857,6 +862,52 @@ WHERE incident.id = '${id}';
 `
 }
 
+export function getCosipByWeek(semaine_cosip){
+	return `
+	SELECT 
+	incident.id,
+	incident_gravite.class as "Majeur / Significatif",
+	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Réference', 
+	incident_impact_enseigne.date_debut as 'date_debut',
+	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
+	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
+	cosip.cosip_resume as "Résumé de l'incident",
+	cosip.semaine_cosip as "Semaine COSIP", 
+	incident_priorite.priorite as 'priorité',
+	incident_statut.nom as 'Statut',
+	incident_impact_enseigne.date_fin as 'date de fin',
+	incident_impact_enseigne.description_impact as "Impact", 
+	incident_gravite.nom as "Gravité avérée",
+	incident.crise_itim as 'crise ITIM ? ',
+	incident.cause as 'cause',
+	incident.origine as 'origine',
+	incident.action_retablissement as 'Action de rétablissement',
+	cosip.plan_action as "Plan d'action",
+	incident_cause_racine.nom as "Cause racine",
+	incident.plan_action as 'plan_action', 
+	incident_impact_enseigne.date_detection as 'Date detection',
+	incident_impact_enseigne.date_com_tdc as 'Date communication tdc', 
+	incident_impact_enseigne.date_qualif_p01 as 'Date qualif_p01',
+	incident_impact_enseigne.date_premier_com as 'Date premier com',
+	incident.description_contournement as 'Description contournement',
+	cosip.other_entite_responsable as 'Entite Responsable',
+	cosip.comment as "Commentaire"
+FROM incident_reference join incident on incident.id = incident_reference.incident_id
+INNER JOIN cosip on incident.cosip_id = cosip.id
+INNER JOIN incident_impact_enseigne ON incident.id = incident_impact_enseigne.incident_id
+INNER JOIN enseigne ON enseigne.id = incident_impact_enseigne.enseigne_id
+INNER JOIN incident_statut on incident.statut_id = incident_statut.id
+INNER JOIN incident_gravite ON incident_gravite.id = incident_impact_enseigne.gravite_id
+INNER JOIN  incident_priorite on incident.priorite_id = incident_priorite.id
+INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racine.id
+left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
+left join application on application.code_irt = incident_application_impactee.Application_code_irt 
+and application.trigramme = incident_application_impactee.Application_trigramme
+WHERE semaine_cosip = '${semaine_cosip}'
+GROUP BY incident_reference.incident_id
+ORDER BY incident.id asc;
+	`
+}
 export function getCosipFormated(){
 	return `
 	SELECT 
@@ -867,6 +918,7 @@ export function getCosipFormated(){
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
 	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
 	cosip.cosip_resume as "Résumé de l'incident",
+	cosip.semaine_cosip as "Semaine COSIP", 
 	incident_priorite.priorite as 'priorité',
 	incident_statut.nom as 'Statut',
 	incident_impact_enseigne.date_fin as 'date de fin',
@@ -901,7 +953,6 @@ GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`
 }
-
 ///////////////////////////////////////
 /////////////// Problèmes /////////////
 ///////////////////////////////////////
