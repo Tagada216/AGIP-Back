@@ -46,8 +46,7 @@ import {
 	statGetApplications,
 	statGetMajInc,
 	getFormatedAgence,
-	getCosipByWeek,
-	getCosipUrlWeek
+	getCosipByWeek
 } from "./data"
 
 // Définition du port du serveur
@@ -153,10 +152,7 @@ app.get("/api/cosip/week/:week", (req,res) =>{
 	var params = [req.params.week]
 	getCosipByWeek(res, params[0])
 } )
-//Obtention de l'url à afficher au cosip => Par semaine 
-app.get("/api/cosip/url/week", (req, res) => {
-	getCosipUrlWeek(res)
-})
+
 ////////////////////////////////////////
 //Chemins d'ajout des incidents dans le cosip 
 ////////////////////////////////////////

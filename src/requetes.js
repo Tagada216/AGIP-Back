@@ -865,14 +865,14 @@ WHERE incident.id = '${id}';
 export function getCosipByWeek(semaine_cosip){
 	return `
 	SELECT 
+	cosip.semaine_cosip as "Semaine COSIP",
 	incident.id,
 	incident_gravite.class as "Majeur / Significatif",
 	replace(group_concat(DISTINCT incident_reference.reference),",","/") as 'Réference', 
 	incident_impact_enseigne.date_debut as 'date_debut',
 	replace (group_concat (DISTINCT enseigne.nom),",","/") as 'Enseigne(s)',
 	coalesce(replace(group_concat(DISTINCT application.nom),","," | "),incident.import_code_irt) as 'Application', 
-	cosip.cosip_resume as "Résumé de l'incident",
-	cosip.semaine_cosip as "Semaine COSIP", 
+	cosip.cosip_resume as "Résumé de l'incident", 
 	incident_priorite.priorite as 'priorité',
 	incident_statut.nom as 'Statut',
 	incident_impact_enseigne.date_fin as 'date de fin',

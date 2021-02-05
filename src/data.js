@@ -98,11 +98,7 @@ export function getCosipByWeek(res, week){
 		res.json(results)
 	})
 }
-export function getCosipUrlWeek(res){
-	sequelize.query("select url_cosip from cosip_week;").then(([results])=>{
-		res.json(results)
-	})
-}
+
 export function getReference(res) {
 	sequelize.query("select reference, incident_id from incident_reference;").then(([results]) => {
 		res.json(results)
