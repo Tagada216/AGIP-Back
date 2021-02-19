@@ -318,21 +318,30 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 			tab_impact.push({
 				enseigne_id: 1,
 				desc: input.description_impactBDDF,
-				gravite: input.impact_avereBDDF
+				gravite: input.impact_avereBDDF,
+				dureeIndispo : input.indispoBDDF,
+				nbuser: input.nbUtilisateurBDDF,
+				tauxIndispo: input.tauxIndispoBDDF
 			})
 		}
 		if (input.enseigne_impactee[i] == 2){
 			tab_impact.push({
 				enseigne_id: 2,
 				desc: input.description_impactCDN,
-				gravite: input.impact_avereCDN
+				gravite: input.impact_avereCDN,
+				dureeIndispo : input.indispoCDN,
+				nbuser: input.nbUtilisateurCDN,
+				tauxIndispo: input.tauxIndispoCDN
 			})
 		}
 		if (input.enseigne_impactee[i] == 3){
 			tab_impact.push({
 				enseigne_id: 3,
 				desc: input.description_impactBPF,
-				gravite: input.impact_avereBPF
+				gravite: input.impact_avereBPF,
+				dureeIndispo : input.indispoBPF,
+				nbuser: input.nbUtilisateurBPF,
+				tauxIndispo: input.tauxIndispoBPF
 			})
 		}	
 	}
@@ -340,7 +349,7 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 	console.log(input.description_impactCDN)
 	const valuesString = tab_impact
 		.map(
-			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${tab_impact.dureeIndispo}","${tab_impact.nbuser}","${tab_impact.tauxIndispo}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 	console.log('Value string v ')
 	console.log(valuesString)
@@ -351,6 +360,9 @@ INSERT INTO incident_impact_enseigne (
 	enseigne_id,
 	gravite_id,
 	description_impact,
+	duree_indispo_reseau,
+	nombre_utilisateurs,
+	taux_indispo_reseau,
 	date_debut,
 	date_detection,
 	date_com_tdc,
