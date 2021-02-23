@@ -321,7 +321,12 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 				gravite: input.impact_avereBDDF,
 				dureeIndispo : input.indispoBDDF,
 				nbuser: input.nbUtilisateurBDDF,
-				tauxIndispo: input.tauxIndispoBDDF
+				tauxIndispo: input.tauxIndispoBDDF,
+				logitel: input.logitelBDDF,
+				chiffre: input.chiffreBDDF,
+				dab: input.dabBDDF,
+				progeliance: input.progelianceBDDF,
+				etece: input.eteceBDDF
 			})
 		}
 		if (input.enseigne_impactee[i] == 2){
@@ -331,7 +336,11 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 				gravite: input.impact_avereCDN,
 				dureeIndispo : input.indispoCDN,
 				nbuser: input.nbUtilisateurCDN,
-				tauxIndispo: input.tauxIndispoCDN
+				tauxIndispo: input.tauxIndispoCDN,
+				dab: input.dabCDN,
+				chiffre: input.internetClientCDN,
+				progeliance: input.internetMobileCDN,
+				etece: input.eteceCDN
 			})
 		}
 		if (input.enseigne_impactee[i] == 3){
@@ -341,7 +350,12 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 				gravite: input.impact_avereBPF,
 				dureeIndispo : input.indispoBPF,
 				nbuser: input.nbUtilisateurBPF,
-				tauxIndispo: input.tauxIndispoBPF
+				tauxIndispo: input.tauxIndispoBPF,
+				logitel: input.logitelBPF,
+				chiffre: input.chiffreBPF,
+				dab: input.dabBPF,
+				progeliance: input.progelianceBPF,
+				etece: input.eteceBPF
 			})
 		}	
 	}
@@ -349,7 +363,7 @@ export function CreationImpactEnseignesCosip(input, idIncident) {
 	console.log(input.description_impactCDN)
 	const valuesString = tab_impact
 		.map(
-			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${tab_impact.dureeIndispo}","${tab_impact.nbuser}","${tab_impact.tauxIndispo}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${tab_impact.dureeIndispo}","${tab_impact.nbuser}","${tab_impact.tauxIndispo}","${tab_impact.logitel}","${tab_impact.chiffre}","${tab_impact.dab}","${tab_impact.progeliance}","${tab_impact.etece}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 	console.log('Value string v ')
 	console.log(valuesString)
@@ -363,6 +377,11 @@ INSERT INTO incident_impact_enseigne (
 	duree_indispo_reseau,
 	nombre_utilisateurs,
 	taux_indispo_reseau,
+	logiteInet_cust,
+	chiffre_cust,
+	dab_cust,
+	progeliance_cust,
+	etece_cust,
 	date_debut,
 	date_detection,
 	date_com_tdc,
@@ -737,21 +756,44 @@ export function AddImpactEnseignesCosip(input, idIncident){
 			tab_impact.push({
 				enseigne_id: 1,
 				desc: input.description_impactBDDF,
-				gravite: input.impact_avereBDDF
+				gravite: input.impact_avereBDDF,
+				dureeIndispo : input.indispoBDDF,
+				nbuser: input.nbUtilisateurBDDF,
+				tauxIndispo: input.tauxIndispoBDDF,
+				logitel: input.logitelBDDF,
+				chiffre: input.chiffreBDDF,
+				dab: input.dabBDDF,
+				progeliance: input.progelianceBDDF,
+				etece: input.eteceBDDF
 			})
 		}
 		if (input.enseigne_impactee[i] == 2){
 			tab_impact.push({
 				enseigne_id: 2,
 				desc: input.description_impactCDN,
-				gravite: input.impact_avereCDN
+				gravite: input.impact_avereCDN,
+				dureeIndispo : input.indispoCDN,
+				nbuser: input.nbUtilisateurCDN,
+				tauxIndispo: input.tauxIndispoCDN,
+				dab: input.dabCDN,
+				chiffre: input.internetClientCDN,
+				progeliance: input.internetMobileCDN,
+				etece: input.eteceCDN
 			})
 		}
 		if (input.enseigne_impactee[i] == 3){
 			tab_impact.push({
 				enseigne_id: 3,
 				desc: input.description_impactBPF,
-				gravite: input.impact_avereBPF
+				gravite: input.impact_avereBPF,
+				dureeIndispo : input.indispoBPF,
+				nbuser: input.nbUtilisateurBPF,
+				tauxIndispo: input.tauxIndispoBPF,
+				logitel: input.logitelBPF,
+				chiffre: input.chiffreBPF,
+				dab: input.dabBPF,
+				progeliance: input.progelianceBPF,
+				etece: input.eteceBPF
 			})
 		}	
 	}
@@ -759,7 +801,9 @@ export function AddImpactEnseignesCosip(input, idIncident){
 	console.log(input.description_impactCDN)
 	const valuesString = tab_impact
 		.map(
-			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}","${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
+			tab_impact => `(${idIncident},${tab_impact.enseigne_id},${tab_impact.gravite},"${tab_impact.desc}","${tab_impact.dureeIndispo}","${tab_impact.nbuser}",
+			"${tab_impact.tauxIndispo}","${tab_impact.logitel}","${tab_impact.chiffre}","${tab_impact.dab}","${tab_impact.progeliance}","${tab_impact.etece}","${input.date_debut}","${input.date_detection}","${input.date_communication_TDC}","${input.date_qualification_p01}",
+			"${input.date_premiere_com}", ${input.is_faux_incident || (input.date_fin == null) ? "NULL" : "\""+input.date_fin+"\""})`)
 		.join(",\n\t")
 	console.log('Value string v ')
 	console.log(valuesString)
@@ -770,6 +814,14 @@ INSERT INTO incident_impact_enseigne (
 	enseigne_id,
 	gravite_id,
 	description_impact,
+	duree_indispo_reseau,
+	nombre_utilisateurs,
+	taux_indispo_reseau,
+	logiteInet_cust,
+	chiffre_cust,
+	dab_cust,
+	progeliance_cust,
+	etece_cust,
 	date_debut,
 	date_detection,
 	date_com_tdc,
@@ -836,6 +888,14 @@ replace (group_concat (DISTINCT incident_impact_enseigne.enseigne_id),",","/") a
 replace (group_concat (DISTINCT enseigne.nom),",","/") as 'enseigne_nom', 
 replace (group_concat (DISTINCT incident_impact_enseigne.description_impact),",","/") as 'description_impact',
 replace (group_concat (DISTINCT incident_impact_enseigne.gravite_id),",","/") as 'gravite_id',
+replace (group_concat (DISTINCT incident_impact_enseigne.nombre_utilisateurs),",","/") as 'nombre_utilisateurs',
+replace (group_concat (DISTINCT incident_impact_enseigne.taux_indispo_reseau),",","/") as 'taux_indispo_reseau',
+replace (group_concat (DISTINCT incident_impact_enseigne.duree_indispo_reseau),",","/") as 'duree_indispo_reseau',
+replace (group_concat (DISTINCT incident_impact_enseigne.logiteInet_cust),",","/") as 'logiteInet_cust',
+replace (group_concat (DISTINCT incident_impact_enseigne.chiffre_cust),",","/") as 'chiffre_cust',
+replace (group_concat (DISTINCT incident_impact_enseigne.dab_cust),",","/") as 'dab_cust',
+replace (group_concat (DISTINCT incident_impact_enseigne.progeliance_cust),",","/") as 'progeliance_cust',
+replace (group_concat (DISTINCT incident_impact_enseigne.etece_cust),",","/") as 'etece_cust',
 replace (group_concat (DISTINCT incident_gravite.nom),",","/") as 'gravite_nom',
 replace (group_concat (DISTINCT incident_gravite.class),",","/") as 'classification',
 incident_statut.nom,
@@ -861,7 +921,7 @@ incident_entite_responsable.nom as 'responsable_nom'
 FROM incident
 INNER JOIN incident_reference ON incident.id=incident_reference.incident_id
 INNER JOIN incident_statut ON incident.statut_id=incident_statut.id
-INNER JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
+LEFT JOIN incident_impact_enseigne ON incident.id=incident_impact_enseigne.incident_id
 INNER JOIN cosip ON incident.cosip_id=cosip.id
 left JOIN incident_gravite ON incident_gravite.id=incident_impact_enseigne.gravite_id
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
