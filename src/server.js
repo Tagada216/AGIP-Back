@@ -4,6 +4,9 @@ var express = require("express")
 var bodyParser = require("body-parser")
 var cors = require("cors")
 var app = express()
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const config = require("./config")
 // var db = require("./database.js")
 
 
@@ -46,7 +49,8 @@ import {
 	statGetApplications,
 	statGetMajInc,
 	getFormatedAgence,
-	getCosipByWeek
+	getCosipByWeek,
+	selectByMatricule
 } from "./data"
 
 // Définition du port du serveur
@@ -255,4 +259,21 @@ app.get("/api/stat/applications", (req,res) =>{
 
 app.get("/api/stat/majeur", (req,res) => {
 	statGetMajInc(res)
+})
+
+
+//////////////////////////////////////////////////
+///////           Authentification         ///////
+//////////////////////////////////////////////////
+
+app.post('/api/login',(req,res) => {
+	selectByMatricule(req.body.matricule,(err,user)=>{
+		if(err) return res.status(500).send("Une erreur est survenue .")
+		if(!user) return res.status(404).send("L'utilisateur n'as pas été trouvée .")
+		let passwordIsValid = bcrypt.compareSync(req.body.password, user.user_pass)
+		if(!passwordIsValid) return res.status(401).send({auth: false, token: null})
+		let token = jwt.sign({id: user.id}, config.secret, {expiresIn: 86400 })
+		//expiresIn: 86400 = expire dans 24heures
+		res.status(200).send({auth:true,token:token})
+	})
 })

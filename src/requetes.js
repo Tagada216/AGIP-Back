@@ -1028,3 +1028,17 @@ FROM (
 GROUP BY inc_par_mois, nom	
 `
 }
+
+
+
+//////////////////////////////////////////////////
+///////           Authentification         ///////
+//////////////////////////////////////////////////
+
+export function selectByMatricule(matricule,callback){
+	if(`SELECT COUNT(matricule) FROM users WHERE matricule = ${matricule}` == 0){
+		return callback(err,rows)
+	}
+	return `SELECT matricule FROM users WHERE matricule = ${matricule}`
+		//"sqlite3": "4.0.8",
+}

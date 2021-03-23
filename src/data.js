@@ -16,7 +16,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb" ,
+	storage: "C:/Users/A487423/OneDrive-GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD-AuthTest.sdb" ,
 	define: {
 		timestamps: false
 	}
@@ -539,6 +539,8 @@ export function statGetMajInc(res){
 }
 
 
+
+
 // export const Changement = sequelize.define("changements", {
 // 	// attributes
 // 	reference: {
@@ -553,3 +555,9 @@ export function statGetMajInc(res){
 // 		type: Sequelize.STRING
 // 		// allowNull defaults to true
 // 	}
+
+
+export function selectByMatricule(res){
+
+	sequelize.query(queries.selectByMatricule(res))
+}
