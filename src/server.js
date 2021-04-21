@@ -4,12 +4,18 @@ var express = require("express")
 var bodyParser = require("body-parser")
 var cors = require("cors")
 var app = express()
+const router = express.Router()
+const config = require("./config")
+
 // var db = require("./database.js")
 
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(cors())
+router.use(require("./tockenChecker"))
+
+// app.listen(config.port || process.env.port || 3000);
 
 // Import de toutes les fonctions de gestion de la base de données (Select/Insert/...)
 import {
@@ -46,7 +52,8 @@ import {
 	statGetApplications,
 	statGetMajInc,
 	getFormatedAgence,
-	getCosipByWeek
+	getCosipByWeek,
+	selectMatricule
 } from "./data"
 
 // Définition du port du serveur
@@ -256,3 +263,23 @@ app.get("/api/stat/applications", (req,res) =>{
 app.get("/api/stat/majeur", (req,res) => {
 	statGetMajInc(res)
 })
+
+
+//////////////////////////////////////////////////
+///////           Authentification         ///////
+//////////////////////////////////////////////////
+
+app.post('/api/login',(req,res) => {
+	console.log(req.body)
+	selectMatricule(req.body,res)
+})
+
+// selectByMatricule(req.body.matricule,(err,user)=>{
+// 	if(err) return res.status(500).send("Une erreur est survenue .")
+// 	if(!user) return res.status(404).send("L'utilisateur n'as pas été trouvée .")
+// 	//let passwordIsValid = bcrypt.compareSync(req.body.password, user.user_pass)
+// 	//if(!passwordIsValid) return res.status(401).send({auth: false, token: null})
+// 	let token = jwt.sign({id: user.id}, config.secret, {expiresIn: 86400 })
+// 	//expiresIn: 86400 = expire dans 24heures
+// 	res.status(200).send({auth:true,token:token})
+// })

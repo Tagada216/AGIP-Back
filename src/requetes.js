@@ -28,6 +28,8 @@ Il sera préférable de marquer :
 
 */
 
+
+
 export function FormatedMainCourante(id) {
 	return `
 SELECT incident.id, 
@@ -1087,4 +1089,20 @@ FROM (
 )
 GROUP BY inc_par_mois, nom	
 `
+}
+
+
+
+//////////////////////////////////////////////////
+///////           Authentification         ///////
+//////////////////////////////////////////////////
+
+export function selectByMatricule(matricule,callback){
+	// if(`SELECT COUNT(matricule) FROM users WHERE matricule = "${matricule}"` == 0){
+	// 	return callback(err,rows)
+	// }
+	return `SELECT * FROM users WHERE matricule = :matricule`
+	// let sql = "SELECT * FROM users WHERE matricule = ?"
+	// return sql
+		
 }

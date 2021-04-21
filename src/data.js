@@ -7,6 +7,11 @@ import {
 // Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
 
+//const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const config = require("./config")
+const tokenList = {}
+
 ////////////////////////////////////////
 // Initialisation de la base de données.
 ////////////////////////////////////////
@@ -16,7 +21,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb" ,
+	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD-AuthTest.sdb",
 	define: {
 		timestamps: false
 	}
@@ -32,6 +37,7 @@ var appCache
 log("\n" + chalk.yellow("Mise en cache des applications"))
 sequelize.query(queries.AllApplications()).then(([results]) => {
 	appCache = results
+	
 })
 log("\n" + chalk.yellow("Mise en cache des applications"))
 
@@ -539,6 +545,8 @@ export function statGetMajInc(res){
 }
 
 
+
+
 // export const Changement = sequelize.define("changements", {
 // 	// attributes
 // 	reference: {
@@ -553,3 +561,38 @@ export function statGetMajInc(res){
 // 		type: Sequelize.STRING
 // 		// allowNull defaults to true
 // 	}
+
+
+export async function selectMatricule(matricule,res){
+	try {
+		log("\n" + chalk.yellow(matricule.matricule))
+		let userId 
+	
+		sequelize.query(queries.selectByMatricule(), { replacements: { matricule:  matricule.matricule }, type: sequelize.QueryTypes.SELECT }).then(([results]) => {
+			userId  = results
+			console.log(userId)
+			console.log(userId.id)
+			if(!userId) return res.status(404).send("L'utilisateur n'as pas été trouvée .")
+			//let passwordIsValid = bcrypt.compareSync(req.body.password, user.user_pass)
+			//if(!passwordIsValid) return res.status(401).send({auth: false, token: null})
+			log("\n" + chalk.blueBright(userId.id))
+			const token = jwt.sign({id: userId.id}, config.secret, {expiresIn: config.tokenLife })
+			const refreshToken = jwt.sign({id: userId.id}, config.refreshTokenSecret, { expiresIn: config.refreshTokenLife})
+			const response = {
+				"status": "Logged in",
+				"token": token,
+				"refreshToken": refreshToken,
+				"user": userId.id,
+				"auth":true
+			}
+			tokenList[refreshToken] = response
+			res.status(200).json(response);
+			// res.status(200).send({auth:true,token:token, user: userId.id})
+		})
+	} catch (err) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+  	}
+}
+
+
+

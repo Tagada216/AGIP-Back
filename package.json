@@ -1,12 +1,16 @@
 {
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "eslint": "^6.0.1",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "sequelize": "^5.8.10",
-    "sqlite3": "4.0.8",
     "sequelize-cli": "^5.5.0",
-    "ssf": "^0.10.2"
+    "sqlite3": "^4.0.8",
+    "ssf": "^0.10.2",
+    "swagger-jsdoc": "^7.0.0-rc.6",
+    "swagger-ui-express": "^4.1.6"
   },
   "version": "0.0.1",
   "name": "API",
