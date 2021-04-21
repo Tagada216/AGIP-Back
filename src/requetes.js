@@ -28,6 +28,8 @@ Il sera préférable de marquer :
 
 */
 
+
+
 export function FormatedMainCourante(id) {
 	return `
 SELECT incident.id, 
@@ -1036,9 +1038,11 @@ GROUP BY inc_par_mois, nom
 //////////////////////////////////////////////////
 
 export function selectByMatricule(matricule,callback){
-	if(`SELECT COUNT(matricule) FROM users WHERE matricule = ${matricule}` == 0){
-		return callback(err,rows)
-	}
-	return `SELECT matricule FROM users WHERE matricule = ${matricule}`
-		//"sqlite3": "4.0.8",
+	// if(`SELECT COUNT(matricule) FROM users WHERE matricule = "${matricule}"` == 0){
+	// 	return callback(err,rows)
+	// }
+	return `SELECT * FROM users WHERE matricule = :matricule`
+	// let sql = "SELECT * FROM users WHERE matricule = ?"
+	// return sql
+		
 }

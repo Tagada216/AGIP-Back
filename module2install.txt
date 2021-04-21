@@ -1,0 +1,9 @@
+swagger-ui-express 
+swagger-jsdoc
+
+sqlite3
+
+bcrypt 
+
+jsonwebtoken 
+ 
