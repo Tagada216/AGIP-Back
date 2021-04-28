@@ -4,6 +4,7 @@ import {
 	response
 } from "express"
 
+
 // Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
 
@@ -21,7 +22,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD-AuthTest.sdb",
+	storage: "C:/Users/A487365/Documents/TDC-Development/BDD/TDC_AGIPROS_BDD - COSIP-AuthTest.sdb",
 	define: {
 		timestamps: false
 	}
@@ -292,167 +293,315 @@ export async function insertImpactEnseigne(res, input) {
 	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
 }
 
+//------------------------------- End of  Emeline Part --------------------------------------
 
 
 // ---------------  Insertion d'un incident au COSIP ------------------
-export async function AddToCosip(res, input, idIncident) {
 
-	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+// export async function AddToCosip(res, input, idIncident) {
 
-	await sequelize.query(deleteIncidentImpEns)
+// 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
 
-	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
-	//On insert dans la table cosip en premier (clés étrangére obligent)
-	const insertResult = await sequelize.query(queries.CreationCosip(input))
-	//On récupére l'id de l'incident nouvellement crée 
-	const idCosip = insertResult[1].lastID
+// 	await sequelize.query(deleteIncidentImpEns)
 
-	log(chalk.blue("\n" + "L'id Cosip de l'incident est ") + chalk.underline.green(idCosip))
+// 	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
+// 	//On insert dans la table cosip en premier (clés étrangére obligent)
+// 	const insertResult = await sequelize.query(queries.CreationCosip(input))
+// 	//On récupére l'id de l'incident nouvellement crée 
+// 	const idCosip = insertResult[1].lastID
 
-	//Insertion des modifications ou non dans la table incident
-	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
-	await sequelize.query(queries.CosiptoIncident(input, idCosip, idIncident))
+// 	log(chalk.blue("\n" + "L'id Cosip de l'incident est ") + chalk.underline.green(idCosip))
 
-	//Insertion des modification ou non dans la table incident_impact_enseigne
-	log("\n" + chalk.yellow("---- Insertion des impacts enseignes ----"))
-	await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
+// 	//Insertion des modifications ou non dans la table incident
+// 	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
+// 	await sequelize.query(queries.CosiptoIncident(input, idCosip, idIncident))
 
-	// Insertion des applications impactées
-	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
-	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
-	}
+// 	//Insertion des modification ou non dans la table incident_impact_enseigne
+// 	log("\n" + chalk.yellow("---- Insertion des impacts enseignes ----"))
+// 	await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
 
-	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
-	res.sendStatus(200)
+// 	// Insertion des applications impactées
+// 	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
+// 	for (const appImpactee of input.application_impactee) {
+// 		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+// 	}
+
+// 	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
+// 	res.sendStatus(200)
+// }
+
+
+export async function AddToCosip(res, input, idIncident){
+	try{
+		//Suppression incident impact enseinge 
+		await sequelize.query(queries.DeleteIncidentImpactEnseigne(), {bind: {id: input.incident_id }, type: Sequelize.QueryTypes.SELECT })
+
+		log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
+		// On insert dans la table cosip en premier (clés étrangèrent obligent)
+
+		const idCosip = await sequelize.query(queries.CreationCosip(), 
+		{bind: {plan_action: input.plan_action,
+				cause_racine_id: input.cause_racine_id, 
+				comment: input.commentaire, 
+				cosip_resume: input.cosip_resume, 
+				semaine_cosip: input.semaine_cosip} , 
+				type: sequelize.QueryTypes.SELECT, 
+				type: Sequelize.DataTypes.STRING }).then(([results])=>{
+			
+			// 	On récupére l'id de l'incident nouvellement crée dans le result
+			return results
+		},(error)=> {
+			return error
+		})
+
+		log(chalk.blue("\n" + "L'id Cosip de l'incident est ") + chalk.underline.red(idCosip))
+		log(chalk.blue("\n" + "L'id de l'incident est ") + chalk.underline.red(input.incident_id))
+
+		log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
+
+		// //////////////// Insertion des modifications ou non dans la table incident //////////////////////////
+		await sequelize.query(queries.CosiptoIncident(idCosip), {bind: 
+			{
+				incident_id: input.incident_id,
+				statut_id: input.statut_id,
+				priorite_id: input.priorite_id,
+				is_contournement: input.is_contournement,
+				is_faux_incident: input.is_faux_incident,
+				description: input.cosip_resume,
+				description_contournement: input.description_contournement,
+				cause: input.cause,
+				origine: input.origine,
+				plan_action: input.plan_action,
+				action_retablissement: input.action_retablissement },
+			type: sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING })
+		
+		// 	Insertion des modification ou non dans la table incident_impact_enseigne
+		log("\n" + chalk.yellow("---- Insertion des impacts enseignes ----"))
+
+		await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
+
+		// Insertion des applications impactées
+
+		log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
+		for (const appImpactee of input.application_impactee) {
+			await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
+		}
+
+		log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
+		
+		res.status(200).json({ message: 'Une erreur est survenue .' })
+
+	}catch (err) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+  	}
+
 }
 
+
+// // ---------------  Modification du COSIP ------------------
+// export async function UpdateCosip(res, input) {
+// 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
+// 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+
+// 	await sequelize.query(deleteIncidentImpEns)
+// 	await sequelize.query(deleteIncidentAppImpactee)
+
+
+// 	log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
+// 	//On insert dans la table cosip en premier (clés étrangére obligent)
+// 	await sequelize.query(queries.UpdateCosip(input))
+
+// 	//Insertion des modifications ou non dans la table incident
+// 	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
+// 	await sequelize.query(queries.UpdateCosiptoIncident(input))
+
+// 	// Insertion des impacts enseignes
+// 	log("\n" + chalk.yellow("Insertion des impacts enseignes"))
+// 	await sequelize.query(queries.CreationImpactEnseignesCosip(input, input.incident_id))
+
+// 	// Insertion des applications impactées
+// 	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
+// 	for (const appImpactee of input.application_impactee) {
+// 		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, input.incident_id))
+// 	}
+
+// 	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
+// 	res.sendStatus(200)
+// }
 
 // ---------------  Modification du COSIP ------------------
 export async function UpdateCosip(res, input) {
-	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
-	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
+	try {
+		
+		//Suppression incident impact enseinge  et  Applcations 
+		await sequelize.query(queries.DeleteIncidentImpactEnseigne(), {bind: {id: input.incident_id }, type: Sequelize.QueryTypes.SELECT })
+		await sequelize.query(queries.DeleteIncidentApplicationImpactee(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT } )
 
-	await sequelize.query(deleteIncidentImpEns)
-	await sequelize.query(deleteIncidentAppImpactee)
+		log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
 
+		//On insert dans la table cosip en premier (clés étrangére obligent)
+		await sequelize.query(queries.UpdateCosip(), 
+		{bind: {cosip_id: input.cosip_id,
+				plan_action: input.plan_action,
+				cause_racine_id: input.cause_racine_id, 
+				comment: input.commentaire, 
+				cosip_resume: input.cosip_resume, 
+				semaine_cosip: input.semaine_cosip} , 
+				type: sequelize.QueryTypes.SELECT, 
+				type: Sequelize.DataTypes.STRING })
+		
+		//Insertion des modifications ou non dans la table incident
+		log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
+		await sequelize.query(queries.UpdateCosiptoIncident(), {bind: 
+			{
+				cosip_id: input.cosip_id,
+				incident_id: input.incident_id,
+				statut_id: input.statut_id,
+				priorite_id: input.priorite_id,
+				is_contournement: input.is_contournement,
+				is_faux_incident: input.is_faux_incident,
+				description: input.cosip_resume,
+				description_contournement: input.description_contournement,
+				cause: input.cause,
+				origine: input.origine,
+				plan_action: input.plan_action,
+				action_retablissement: input.action_retablissement },
+			type: sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING })
 
-	log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
-	//On insert dans la table cosip en premier (clés étrangére obligent)
-	await sequelize.query(queries.UpdateCosip(input))
+		
+		// Insertion des impacts enseignes
+		log("\n" + chalk.yellow("Insertion des impacts enseignes"))
+		await sequelize.query(queries.CreationImpactEnseignesCosip(input, input.incident_id))
 
-	//Insertion des modifications ou non dans la table incident
-	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
-	await sequelize.query(queries.UpdateCosiptoIncident(input))
+		// Insertion des applications impactées
+		log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
+		for (const appImpactee of input.application_impactee) {
+			await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, input.incident_id))
+		}
 
-	// Insertion des impacts enseignes
-	log("\n" + chalk.yellow("Insertion des impacts enseignes"))
-	await sequelize.query(queries.CreationImpactEnseignesCosip(input, input.incident_id))
-
-	// Insertion des applications impactées
-	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
-	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, input.incident_id))
+		log("\n" + chalk.green("--- FIN DE L'UPDATE AU COSIP (SUCCES) ---"))
+		res.status(200).json({ message: 'Modification réalisée avec succès' })
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
 	}
 
-	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
-	res.sendStatus(200)
 }
 
 export async function deleteIncident(res, input) {
-	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
-	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
-	const deleteIncidentRef = queries.DeleteIncidentReference(input)
-	const deleteIncident = queries.DeleteIncident(input)
+	try {
 
-	await sequelize.query(deleteIncidentAppImpactee)
-	await sequelize.query(deleteIncidentImpEns)
-	await sequelize.query(deleteIncidentRef)
-	await sequelize.query(deleteIncident)
+		await sequelize.query(queries.DeleteIncidentImpactEnseigne(), {bind: {id: input.incident_id }, type: Sequelize.QueryTypes.SELECT })
+		await sequelize.query(queries.DeleteIncidentApplicationImpactee(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT } )
+		await sequelize.query(queries.DeleteIncidentReference(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT })
+		await sequelize.query(queries.DeleteIncident(input), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT })
 
-	res.sendStatus(200)
+		log("\n" + chalk.green("--- Suppression effectué (SUCCES) ---"))
+		res.status(200).json({ message: 'Suppression réalisée avec succès' })
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+	}
+
 }
 
 
 export async function updateMainCourante(res, input) {
+	try {
 
-
-	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
-	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
-
-	await sequelize.query(deleteIncidentImpEns)
-	await sequelize.query(deleteIncidentAppImpactee)
-
-
-	// Insert des modifications effectuées (il faudrait insert à l'id qui a servi pour le delete (si possible))	 
-	log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE ---"))
-	// On insert dans la table incident en premier (clés étrangères obligent)
-	await sequelize.query(queries.UpdateIncident(input))
-
-	//Suppression préalable car table avec tableau dificile à update
-	log("\n" + chalk.yellow("Suppression des références"))
-	await sequelize.query(queries.UpdateDeleteReferences(input))
-
-	// Insertion des références
-	log("\n" + chalk.yellow("Insertion ou Update des références"))
-	await sequelize.query(queries.UpdateReferences(input))
-
-	// Insertion des impacts enseignes
-	log("\n" + chalk.yellow("Insertion des impacts enseignes"))
-	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, input.incident_id))
-
-
-	// Insertion des applications impactées
-	log("\n" + chalk.yellow("Insertion des applications impactées"))
-	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.UpdateCreationApplicationsImpactees(appImpactee, input.incident_id))
+		await sequelize.query(queries.DeleteIncidentImpactEnseigne(), {bind: {id: input.incident_id }, type: Sequelize.QueryTypes.SELECT })
+		await sequelize.query(queries.DeleteIncidentApplicationImpactee(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT } )
+	
+	
+		// Insert des modifications effectuées (il faudrait insert à l'id qui a servi pour le delete (si possible))	 
+		log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE ---"))
+		// On insert dans la table incident en premier (clés étrangères obligent)
+		await sequelize.query(queries.UpdateIncident(), {bind : {
+			incident_id: input.incident_id,
+			statut_id: input.statut_id,
+			priorite_id: input.priorite_id,
+			is_contournement: input.is_contournement,
+			is_faux_incident: input.is_faux_incident,
+			description: input.description,
+			description_contournement: input.description_contournement,
+			cause: input.cause,
+			origine: input.origine,
+			plan_action: input.plan_action,
+			action_retablissement: input.action_retablissement },
+			type: sequelize.QueryTypes.SELECT
+		})
+	
+		//Suppression préalable car table avec tableau dificile à update
+		log("\n" + chalk.yellow("Suppression des références"))
+		await sequelize.query(queries.UpdateDeleteReferences(input))
+	
+		// Insertion des références
+		log("\n" + chalk.yellow("Insertion ou Update des références"))
+		await sequelize.query(queries.UpdateReferences(input))
+	
+		// Insertion des impacts enseignes
+		log("\n" + chalk.yellow("Insertion des impacts enseignes"))
+		await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, input.incident_id))
+	
+	
+		// Insertion des applications impactées
+		log("\n" + chalk.yellow("Insertion des applications impactées"))
+		for (const appImpactee of input.application_impactee) {
+			await sequelize.query(queries.UpdateCreationApplicationsImpactees(appImpactee, input.incident_id))
+		}
+	
+		log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
+	
+	
+		// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
+		log("\n" + chalk.green("---Mise à jour de l'incident effectué (SUCCES) ---"))
+		res.status(200).json({ message: " Mise à jour de l'incident réalisée avec succès" })
+		
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
 	}
-
-	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
-
-
-	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
-	res.sendStatus(200)
-
-	// })
 
 }
 
 export async function createAgence(input) {
 
-	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
-	// console.log(input);
-	// log("\n"+chalk.yellow(await sequelize.query(queries.CreationIncidentAgence(input))))
-	log("\n" + chalk.yellow("Insertion des incidents agence"))
-	const createNewIncidentAgence = await sequelize.query(queries.CreationIncidentAgence(input))
-	log("\n" + chalk.yellow("création de l'id"))
-	const idIncident = createNewIncidentAgence[1].lastID
-	const createRef = queries.CreationReferencesAgence(input, idIncident)
-	const createImpactEnseigne = queries.CreationImpactEnseignesAgence(input, idIncident)
+	try {
+		log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 
+		log("\n" + chalk.yellow("Insertion des incidents agence"))
+		const createNewIncidentAgence = await sequelize.query(queries.CreationIncidentAgence(input))
+	
+		log("\n" + chalk.yellow("création de l'id"))
+		const idIncident = createNewIncidentAgence[1].lastID
+		const createRef = queries.CreationReferencesAgence(input, idIncident)
+		const createImpactEnseigne = queries.CreationImpactEnseignesAgence(input, idIncident)
+	
+	
+		// Insertion des références
+		log("\n" + chalk.yellow("Insertion des références incidents "))
+		await sequelize.query(createRef)
+	
+		// Insertion des impacts enseignes
+		log("\n" + chalk.yellow("Insertion des ensegnes impactés "))
+		await sequelize.query(createImpactEnseigne)
+	
+		// Insertion des applications impactées
+		log("\n" + chalk.yellow("Insertion des applications impactées"))
+			await sequelize.query(queries.CreationApplicationsImpacteesAgence(input.application_impactee, idIncident))
+	
+		// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
+		log("\n" + chalk.green("---Ajout des agences effectué (SUCCES)  ---"))
+		res.status(200).json({ message: " Ajout des agences réalisée avec succès" })
 
-	// Insertion des références
-	log("\n" + chalk.yellow("Insertion des références incidents "))
-	await sequelize.query(createRef)
-
-	// Insertion des impacts enseignes
-	log("\n" + chalk.yellow("Insertion des ensegnes impactés "))
-	await sequelize.query(createImpactEnseigne)
-
-	// Insertion des applications impactées
-	log("\n" + chalk.yellow("Insertion des applications impactées"))
-		await sequelize.query(queries.CreationApplicationsImpacteesAgence(input.application_impactee, idIncident))
-	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
-
-
-	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
-	// res.sendStatus(200)
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+	}
 
 }
 
 export async function updateAgence(res) {
-
-	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
+	try {
+		log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 
 	const updateIncident = queries.UpdateIncidentAgence(res)
 	const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigneAgence(res)
@@ -467,26 +616,23 @@ export async function updateAgence(res) {
 	await sequelize.query(updateIncidentImpactEnseigne)
 
 	
-	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
-
-
 	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
-	// res.sendStatus(200)
+	log("\n" + chalk.green("---Fin de la modification (SUCCES)  ---"))
+	res.status(200).json({ message: " Ajout des agences réalisée avec succès" })
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+	}
+
 }
 
 export async function updateMainCouranteAgence(res, input) {
-
-
+	try {
+		
 	// Delete des informations à l'id de l'incident sélectionné
-	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
-	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
-	const deleteIncidentRef = queries.DeleteIncidentReference(input)
-	const deleteIncident = queries.DeleteIncident(input)
-
-	await sequelize.query(deleteIncidentAppImpactee)
-	await sequelize.query(deleteIncidentImpEns)
-	await sequelize.query(deleteIncidentRef)
-	await sequelize.query(deleteIncident)
+	await sequelize.query(queries.DeleteIncidentImpactEnseigne(), {bind: {id: input.incident_id }, type: Sequelize.QueryTypes.SELECT })
+	await sequelize.query(queries.DeleteIncidentApplicationImpactee(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT } )
+	await sequelize.query(queries.DeleteIncidentReference(), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT })
+	await sequelize.query(queries.DeleteIncident(input), {bind: {incident_id: input.incident_id}, type: Sequelize.QueryTypes.SELECT })
 
 	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 	// On insert dans la table incident en premier (clés étrangères obligent)
@@ -510,23 +656,20 @@ export async function updateMainCouranteAgence(res, input) {
 		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
 	}
 
-	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
-
-
 	// Le "res.sendStatus" est nécessaire pour que le front sache que tout c'est bien passé et qu'il est possible de recharger les données
-	res.sendStatus(200)
+	log("\n" + chalk.green("---Fin de la modification (SUCCES)  ---"))
+	res.status(200).json({ message: " Ajout des agences réalisée avec succès" })
+	} catch (error) {
+		return res.status(500).json({ message: 'Une erreur est survenue .' });
+	}
 
 }
 
-export async function statOrigineIncidentsMajeurs(res) {
-	var test = await sequelize.query(queries.getOrigineIncMaj())
-	log(test)
-	res.json({})
-}
 
-// Functions poour les Statistiques
+// Functions pour les Statistiques
 
-//Récupération des priorité dans la table incident pour stats
+//Récupération des priorités dans la table incident pour stats
+
 export function statGetPriorite(res){
 	sequelize.query("SELECT priorite_id FROM incident;").then(([results]) => {
 		res.json(results)
