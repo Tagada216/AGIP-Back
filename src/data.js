@@ -296,41 +296,6 @@ export async function insertImpactEnseigne(res, input) {
 //------------------------------- End of  Emeline Part --------------------------------------
 
 
-// ---------------  Insertion d'un incident au COSIP ------------------
-
-// export async function AddToCosip(res, input, idIncident) {
-
-// 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
-
-// 	await sequelize.query(deleteIncidentImpEns)
-
-// 	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION AU COSIP ---"))
-// 	//On insert dans la table cosip en premier (clés étrangére obligent)
-// 	const insertResult = await sequelize.query(queries.CreationCosip(input))
-// 	//On récupére l'id de l'incident nouvellement crée 
-// 	const idCosip = insertResult[1].lastID
-
-// 	log(chalk.blue("\n" + "L'id Cosip de l'incident est ") + chalk.underline.green(idCosip))
-
-// 	//Insertion des modifications ou non dans la table incident
-// 	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
-// 	await sequelize.query(queries.CosiptoIncident(input, idCosip, idIncident))
-
-// 	//Insertion des modification ou non dans la table incident_impact_enseigne
-// 	log("\n" + chalk.yellow("---- Insertion des impacts enseignes ----"))
-// 	await sequelize.query(queries.AddImpactEnseignesCosip(input, idIncident))
-
-// 	// Insertion des applications impactées
-// 	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
-// 	for (const appImpactee of input.application_impactee) {
-// 		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident))
-// 	}
-
-// 	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
-// 	res.sendStatus(200)
-// }
-
-
 export async function AddToCosip(res, input, idIncident){
 	try{
 		//Suppression incident impact enseinge 
@@ -372,7 +337,9 @@ export async function AddToCosip(res, input, idIncident){
 				cause: input.cause,
 				origine: input.origine,
 				plan_action: input.plan_action,
-				action_retablissement: input.action_retablissement },
+				action_retablissement: input.action_retablissement,
+				entite_responsable: input.entite_responsable
+			},
 			type: sequelize.QueryTypes.SELECT,
 			type: Sequelize.DataTypes.STRING })
 		
@@ -397,38 +364,6 @@ export async function AddToCosip(res, input, idIncident){
   	}
 
 }
-
-
-// // ---------------  Modification du COSIP ------------------
-// export async function UpdateCosip(res, input) {
-// 	const deleteIncidentAppImpactee = queries.DeleteIncidentApplicationImpactee(input)
-// 	const deleteIncidentImpEns = queries.DeleteIncidentImpactEnseigne(input)
-
-// 	await sequelize.query(deleteIncidentImpEns)
-// 	await sequelize.query(deleteIncidentAppImpactee)
-
-
-// 	log("\n" + chalk.yellow("--- DEBUT DE L'UPDATE AU COSIP ---"))
-// 	//On insert dans la table cosip en premier (clés étrangére obligent)
-// 	await sequelize.query(queries.UpdateCosip(input))
-
-// 	//Insertion des modifications ou non dans la table incident
-// 	log("\n" + chalk.yellow("--- Insertion des modifications de l'incident ----"))
-// 	await sequelize.query(queries.UpdateCosiptoIncident(input))
-
-// 	// Insertion des impacts enseignes
-// 	log("\n" + chalk.yellow("Insertion des impacts enseignes"))
-// 	await sequelize.query(queries.CreationImpactEnseignesCosip(input, input.incident_id))
-
-// 	// Insertion des applications impactées
-// 	log("\n" + chalk.yellow("---- Insertion des applications impactées --- "))
-// 	for (const appImpactee of input.application_impactee) {
-// 		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, input.incident_id))
-// 	}
-
-// 	log("\n" + chalk.green("--- FIN DE L'INSERTION AU COSIP (SUCCES) ---"))
-// 	res.sendStatus(200)
-// }
 
 // ---------------  Modification du COSIP ------------------
 export async function UpdateCosip(res, input) {
@@ -466,7 +401,9 @@ export async function UpdateCosip(res, input) {
 				cause: input.cause,
 				origine: input.origine,
 				plan_action: input.plan_action,
-				action_retablissement: input.action_retablissement },
+				action_retablissement: input.action_retablissement,
+				entite_responsable: input.entite_responsable
+			},
 			type: sequelize.QueryTypes.SELECT,
 			type: Sequelize.DataTypes.STRING })
 

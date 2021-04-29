@@ -736,7 +736,8 @@ export function CosiptoIncident( idCosip){
 		cause=$cause,
 		origine=$origine,
 		plan_action=$plan_action,
-		action_retablissement=$action_retablissement
+		action_retablissement=$action_retablissement,
+		entite_responsable_id=$entite_responsable
 	WHERE id =$incident_id;
 	`
 }
@@ -855,7 +856,8 @@ export function UpdateCosiptoIncident(){
 		cause=$cause,
 		origine=$origine,
 		plan_action=$plan_action,
-		action_retablissement=$action_retablissement
+		action_retablissement=$action_retablissement,
+		entite_responsable_id=$entite_responsable
 	WHERE id =$incident_id;
 	`
 }
