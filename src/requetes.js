@@ -230,12 +230,12 @@ INSERT INTO incident(
 	description_contournement,
 	is_faux_incident)
 VALUES(
-	?,
-	?,
-	?,
-	${"?" ? 1 : 0},
-	?,
-	${"?" ? 1 : 0});
+	$description,
+	$statutId,
+	$priopriteId,
+	${ input.is_contournement ? 1 : 0},
+	$description_contournement,
+	${ input.is_faux_incident ? 1 : 0});
 `
 }
 
@@ -295,17 +295,18 @@ INSERT INTO incident(
 	action_retablissement,
 	cosip_id)
 VALUES(
-	"${input.description}",
-	"${input.statut_id}",
-	"${input.priorite_id}",
+	$description, 
+	$statut_id, 
+	$priorite_id,
 	"${input.is_contournement ? 1 : 0}",
-	"${input.description_contournement}",
+	$description_contournement,
 	"${input.is_faux_incident ? 1 : 0}",
-	"${input.cause}",
-	"${input.origine}",
-	"${input.plan_action}",
-	"${input.action_retablissement}",
-	"${input.cosip_id}");
+	$cause,
+	$origine,
+	$plan_action,
+	$action_retablissement,
+	$cosip_id
+	);
 `
 }
 
@@ -451,17 +452,17 @@ VALUES(
 	Qu'est-ce qu'un trigger : https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1973090-triggers
 	Doc SQLITE et trigger : https://sqlite.org/lang_createtrigger.html
 */
-export function CreationApplicationsImpactees(application, idIncident){
+export function CreationApplicationsImpactees(application){
 	console.log(application)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
 		console.log("Je suis CONNU je rentre dans le IF")
 		return `
 INSERT INTO incident_application_impactee
 VALUES(
-	${idIncident}, 
-	"${application.code_irt}", 
-	"${application.trigramme}",
-	"${application.display_name}"
+	$idIncident, 
+	$codeIrt, 
+	$trigrammeApp,
+	$displayNameApp
 	);	
 `	
 	}
@@ -469,7 +470,7 @@ VALUES(
 	console.log("Je suis INCONNU je rentre dans le ELSE")
 		return `
 INSERT INTO incident_application_impactee
-	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "${application.display_name}" 
+	SELECT $idIncident, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "$displayNameApp" 
 	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
@@ -586,11 +587,11 @@ INSERT INTO incident(
 	priorite_id,
 	is_agence)
 VALUES(
-	"${input.description}",
-	"${input.cause}",
-	${input.statut_id},
-	${input.priorite_id},
-	${input.is_agence}
+	$description,
+	$cause,
+	$statut_id,
+	$priorite_id,
+	$is_agence
 	);
 `
 }
@@ -603,8 +604,9 @@ INSERT INTO incident_reference (
 	reference, 
 	incident_id)
 VALUES(
-	"${input.reference}",
-	${idIncident});
+	$reference, 
+	$incident_id
+	);
 `
 }
 
@@ -997,7 +999,7 @@ INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racin
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
 left join application on application.code_irt = incident_application_impactee.Application_code_irt 
 and application.trigramme = incident_application_impactee.Application_trigramme
-WHERE semaine_cosip = :semaine_cosip
+WHERE semaine_cosip = $semaine_cosip
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`
