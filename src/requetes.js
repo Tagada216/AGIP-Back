@@ -452,14 +452,14 @@ VALUES(
 	Qu'est-ce qu'un trigger : https://openclassrooms.com/fr/courses/1959476-administrez-vos-bases-de-donnees-avec-mysql/1973090-triggers
 	Doc SQLITE et trigger : https://sqlite.org/lang_createtrigger.html
 */
-export function CreationApplicationsImpactees(application){
+export function CreationApplicationsImpactees(application,idIncident){
 	console.log(application)
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
 		console.log("Je suis CONNU je rentre dans le IF")
 		return `
 INSERT INTO incident_application_impactee
 VALUES(
-	$idIncident, 
+	${idIncident}, 
 	$codeIrt, 
 	$trigrammeApp,
 	$displayNameApp
@@ -470,7 +470,7 @@ VALUES(
 	console.log("Je suis INCONNU je rentre dans le ELSE")
 		return `
 INSERT INTO incident_application_impactee
-	SELECT $idIncident, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", "$displayNameApp" 
+	SELECT ${idIncident}, 'F' || (max(CAST(CI AS INTEGER))+1), "FFF", $displayNameApp 
 	FROM (SELECT replace(code_irt,'F','') AS 'CI' FROM application WHERE code_irt LIKE 'F%')
 `
 }
@@ -954,11 +954,13 @@ left join application on application.code_irt = incident_application_impactee.Ap
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
-WHERE incident.id = :id;
+WHERE incident.id = '${id}';
 `
 }
 
-export function getCosipByWeek(semaine_cosip){
+// :incident_id
+
+export function getCosipByWeek(){
 	return `
 	SELECT 
 	cosip.semaine_cosip as "Semaine COSIP",

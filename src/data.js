@@ -106,17 +106,17 @@ export function getIncident(idIncident, res) {
 }
 
 export function getIdcosip(res, id) {
-	sequelize.query(queries.getIdcosip(), {
-		bind: id,
-		type: sequelize.QueryTypes.SELECT
-	}).then(([results]) => {
+	sequelize.query(queries.getIdcosip(id)).then(([results]) => {
 		res.json(results)
 	})
 }
 
 export function getCosipByWeek(res, week) {
 	sequelize.query(queries.getCosipByWeek(), {
-		bind: week,
+		bind: 
+		{
+			semaine_cosip: week
+		},
 		type: sequelize.QueryTypes.SELECT
 	}).then(([results]) => {
 		res.json(results)
@@ -214,14 +214,24 @@ export function getCosipFormated(res) {
 	})
 }
 
-export function getCosipById(res, id) {
-	sequelize.query(queries.getCosipById(), {
-		bind: id,
-		type: sequelize.QueryTypes.SELECT
-	}).then(([results]) => {
-		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
-	})
-}
+ 
+export function getCosipById(res, id) {
+    sequelize.query(queries.getCosipById(id)).then(([results]) => {
+        res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+    })
+} 
+ 
+
+// export function getCosipById(res, id) {
+// 	sequelize.query(queries.getCosipById(), {
+// 		replacements: {
+// 			incident_id : id
+// 		},
+// 		type: sequelize.QueryTypes.SELECT
+// 	}).then(([results]) => {
+// 		res.json(results)
+// 	})
+// }
 
 
 export async function createMainCourante(res, input) {
@@ -253,9 +263,8 @@ export async function createMainCourante(res, input) {
 	// Insertion des applications impactées
 	log("\n" + chalk.yellow("Insertion des applications impactées"))
 	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee), {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee,idIncident), {
 			bind: {
-				idIncident: idIncident,
 				codeIrt: application.code_irt,
 				trigrammeApp: application.trigramme,
 				displayNameApp: application.display_name
