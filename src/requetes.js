@@ -201,6 +201,25 @@ ORDER BY incident.id desc;
 ///////////// AJOUT ////////////////
 ////////////////////////////////////
 
+// export function CreationIncident(input) {
+// 	return `
+// INSERT INTO incident(
+// 	description, 
+// 	statut_id, 
+// 	priorite_id, 
+// 	is_contournement,
+// 	description_contournement,
+// 	is_faux_incident)
+// VALUES(
+// 	"${input.description}",
+// 	${input.statut_id},
+// 	${input.priorite_id},
+// 	${input.is_contournement ? 1 : 0},
+// 	"${input.description_contournement}",
+// 	${input.is_faux_incident ? 1 : 0});
+// `
+// }
+
 export function CreationIncident(input) {
 	return `
 INSERT INTO incident(
@@ -211,12 +230,12 @@ INSERT INTO incident(
 	description_contournement,
 	is_faux_incident)
 VALUES(
-	"${input.description}",
-	${input.statut_id},
-	${input.priorite_id},
-	${input.is_contournement ? 1 : 0},
-	"${input.description_contournement}",
-	${input.is_faux_incident ? 1 : 0});
+	?,
+	?,
+	?,
+	${"?" ? 1 : 0},
+	?,
+	${"?" ? 1 : 0});
 `
 }
 
@@ -289,6 +308,8 @@ VALUES(
 	"${input.cosip_id}");
 `
 }
+
+
 export function CreationImpactEnseignesMainCourante(input, idIncident) {
 	const valuesString = input.enseigne_impactee
 		.map(
@@ -510,6 +531,8 @@ SET
 WHERE id=${input.incident_id};
 `
 }
+
+
 export function UpdateDeleteReferences(input){
 	return`
 	DELETE
@@ -517,6 +540,8 @@ export function UpdateDeleteReferences(input){
 	WHERE incident_id= "${input.incident_id}";
 	`
 }
+
+
 export function UpdateReferences(input) {
 	return `
 	INSERT INTO incident_reference (
@@ -526,6 +551,8 @@ export function UpdateReferences(input) {
 		${input.references.map(ref => `("${ref.reference}", ${input.incident_id})`).join(",\n\t")};
 `
 }
+
+
 export function UpdateCreationApplicationsImpactees(application, incidentId){
 	if (application.trigramme !== undefined && application.code_irt !== undefined){
 		return `
@@ -591,7 +618,7 @@ INSERT INTO incident_impact_enseigne (
 	date_debut,
 	date_fin,
 	description_impact,
-	nombre_utilisateur
+	nombre_utilisateurs
 	)
 VALUES(
 	${idIncident},
@@ -653,7 +680,7 @@ UPDATE incident_impact_enseigne
 SET 
 	date_debut=datetime("${input.date_debut}","localtime"),
 	date_fin=datetime("${input.date_fin}","localtime"),
-	nombre_utilisateur=${input.nbUtilisateur},
+	nombre_utilisateurs=${input.nbUtilisateur},
 	enseigne_id=${input.enseigne_impactee},
 	description_impact="${input.description_impact}"
 WHERE incident_id=${input.incident_id};	
@@ -702,11 +729,11 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 
 
 //get id  d'un cosip 
-export function getIdcosip(input){
+export function getIdcosip(){
 	return `
 SELECT incident.cosip_id
 FROM incident
-WHERE id ="${input}"
+WHERE id = :idCosip
 	`
 }
 //Création d'un incident au cosip 
@@ -932,7 +959,7 @@ left join application on application.code_irt = incident_application_impactee.Ap
 join incident_entite_responsable on incident_entite_responsable.id=incident.entite_responsable_id
 INNER JOIN enseigne ON incident_impact_enseigne.enseigne_id=enseigne.id
 INNER JOIN incident_priorite ON incident.priorite_id=incident_priorite.id
-WHERE incident.id = '${id}';
+WHERE incident.id = :id;
 `
 }
 
@@ -977,7 +1004,7 @@ INNER JOIN incident_cause_racine ON cosip.cause_racine_id = incident_cause_racin
 left join incident_application_impactee on incident.id = incident_application_impactee.incident_id
 left join application on application.code_irt = incident_application_impactee.Application_code_irt 
 and application.trigramme = incident_application_impactee.Application_trigramme
-WHERE semaine_cosip = '${semaine_cosip}'
+WHERE semaine_cosip = :semaine_cosip
 GROUP BY incident_reference.incident_id
 ORDER BY incident.id asc;
 	`

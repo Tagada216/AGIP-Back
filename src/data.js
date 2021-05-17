@@ -3,6 +3,7 @@ import chalk from "chalk"
 import {
 	response
 } from "express"
+import { INTEGER, INET } from "sequelize"
 
 // Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
@@ -21,7 +22,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD-AuthTest.sdb",
+	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD - COSIP-AuthTest.sdb",
 	define: {
 		timestamps: false
 	}
@@ -83,7 +84,7 @@ export function getIncident(idIncident, res) {
 		"join incident_couche_si_impactee on incident_couche_si_impactee.id = incident.couche_si_impactee_id " +
 		"join incident_cause_racine on incident_cause_racine.id = incident.cause_racine_id " +
 		"join changements on changements.id = incident.changements_id " +
-		"where incident.id = " + idIncident + ";"
+		"where incident.id = :incidentId;", { replacements: {incidentId: idIncident}, type:sequelize.QueryTypes.SELECT} 
 	).then(([results]) => {
 		/*
 		 * Je pourrai uniquement utiliser res.json(results[0])
@@ -95,13 +96,13 @@ export function getIncident(idIncident, res) {
 }
 
 export function getIdcosip(res, id) {
-	sequelize.query(queries.getIdcosip(id)).then(([results]) => {
+	sequelize.query(queries.getIdcosip(), {bind: id, type:sequelize.QueryTypes.SELECT}).then(([results]) => {
 		res.json(results)
 	})
 }
 
 export function getCosipByWeek(res, week){
-	sequelize.query(queries.getCosipByWeek(week)).then(([results])=>{
+	sequelize.query(queries.getCosipByWeek(), {bind: week, type: sequelize.QueryTypes.SELECT}).then(([results])=>{
 		res.json(results)
 	})
 }
@@ -161,9 +162,12 @@ export function getEnseignes(res) {
 
 export function getMainCourante(res, id) {
 	sequelize.query(queries.MainCourante(id)).then(([results]) => {
+		console.log(id)
+		console.log(results)
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }
+// ,{ replacements: { idIncident : id }, type: sequelize.QueryTypes.SELECT }
 
 export function getFormatedMainCourante(res, id) {
 	sequelize.query(queries.FormatedMainCourante(id)).then(([results]) => {
@@ -197,7 +201,7 @@ export function getCosipFormated(res) {
 }
 
 export function getCosipById(res, id) {
-	sequelize.query(queries.getCosipById(id)).then(([results]) => {
+	sequelize.query(queries.getCosipById(),{bind: id, type: sequelize.QueryTypes.SELECT}).then(([results]) => {
 		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
 	})
 }
@@ -206,7 +210,11 @@ export function getCosipById(res, id) {
 export async function createMainCourante(res, input) {
 	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 	// On insert dans la table incident en premier (clés étrangères obligent)
-	const insertResult = await sequelize.query(queries.CreationIncident(input))
+	const insertResult = await sequelize.query(queries.CreationIncident(), 
+	{ replacements: [input.description, input.statut_id, input.priorite_id, 
+					 input.is_contournement, input.description_contournement,
+					 input.is_faux_incident], type: sequelize.QueryTypes.SELECT }
+	)
 	// On récupère l'id d el'incident nouvellement crée
 	const idIncident = insertResult[1].lastID
 
@@ -292,7 +300,7 @@ export async function insertImpactEnseigne(res, input) {
 	await sequelize.query(queries.CreationImpactEnseignesMainCourante(input, idIncident))
 }
 
-
+////// Nico part //////
 
 // ---------------  Insertion d'un incident au COSIP ------------------
 export async function AddToCosip(res, input, idIncident) {
