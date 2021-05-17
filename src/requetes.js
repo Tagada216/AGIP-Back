@@ -183,7 +183,7 @@ SELECT incident.id,
 	incident.cause as Cause,
 	incident.description as 'Description',  
 	incident_impact_enseigne.description_impact as 'Impact', 
-	incident_impact_enseigne.nombre_utilisateur as 'Nombre utilisateur'
+	incident_impact_enseigne.nombre_utilisateurs as 'Nombre utilisateur'
 FROM (((((incident_reference join incident on incident.id = incident_reference.incident_id) 
 	join incident_statut on incident.statut_id = incident_statut.id) 
 	join incident_priorite on incident.priorite_id = incident_priorite.id)
@@ -475,36 +475,36 @@ INSERT INTO incident_application_impactee
 }
 
 
-export function DeleteIncidentApplicationImpactee(input)
+export function DeleteIncidentApplicationImpactee()
 {
 	return `
 DELETE FROM incident_application_impactee
-WHERE incident_id=${input.incident_id};
+WHERE incident_id=$incident_id;
 `
 }
 
 
-export function DeleteIncidentImpactEnseigne(input)
+export function DeleteIncidentImpactEnseigne()
 {
 	return `
 DELETE FROM incident_impact_enseigne
-WHERE incident_id=${input.incident_id};
+WHERE incident_id=$id;
 `
 }
 
 
-export function DeleteIncidentReference(input){
+export function DeleteIncidentReference(){
 	return `
 DELETE FROM incident_reference
-WHERE incident_id=${input.incident_id};	
+WHERE incident_id=$incident_id;	
 `
 }
 
 
-export function DeleteIncident(input){
+export function DeleteIncident(){
 	return `
 DELETE FROM incident
-WHERE id=${input.incident_id};	
+WHERE id=$incident_id;	
 `
 }
 
@@ -518,17 +518,17 @@ export function UpdateIncident(input) {
 	return `
 UPDATE incident
 SET
-	statut_id=${input.statut_id},
-	priorite_id=${input.priorite_id},
-	is_contournement=${input.is_contournement ? 1 : 0},
-	is_faux_incident=${input.is_faux_incident ? 1 : 0},
-	description="${input.description}",
-	description_contournement="${input.description_contournement}",
-	cause="${input.cause}",
-	origine="${input.origine}",
-	plan_action="${input.plan_action}",
-	action_retablissement="${input.action_retablissement}"
-WHERE id=${input.incident_id};
+	statut_id=$statut_id,
+	priorite_id=$priorite_id,
+	is_contournement=$is_contournement,
+	is_faux_incident=$is_faux_incident,
+	description=$description,
+	description_contournement=$description_contournement,
+	cause=$cause,
+	origine=$origine,
+	plan_action=$plan_action,
+	action_retablissement=$action_retablissement
+WHERE id=$incident_id;
 `
 }
 
@@ -728,16 +728,8 @@ WHERE incident_id=(SELECT incident_id FROM incident_impact_enseigne)
 ///////////////////////////////////////
 
 
-//get id  d'un cosip 
-export function getIdcosip(){
-	return `
-SELECT incident.cosip_id
-FROM incident
-WHERE id = :idCosip
-	`
-}
 //Création d'un incident au cosip 
-export function CreationCosip(input) {
+export function CreationCosip() {
 	return `
 INSERT INTO cosip (
 	plan_action,
@@ -747,32 +739,32 @@ INSERT INTO cosip (
 	semaine_cosip
 	)
 VALUES(
-	"${input.plan_action}",
-	"${input.cause_racine_id}",
-	"${input.commentaire}",
-	"${input.cosip_resume}",
-	"${input.semaine_cosip}"
+	$plan_action,
+	$cause_racine_id,
+	$comment,
+	$cosip_resume,
+	$semaine_cosip
 );
 `
 }
 
-export function CosiptoIncident(input, idCosip){
+export function CosiptoIncident( idCosip){
 	return `
 	UPDATE incident
 	SET
 		cosip_id=${idCosip},
-		statut_id="${input.statut_id}",
-		priorite_id=${input.priorite_id},
-		is_contournement="${input.is_contournement ? 1 : 0}",
-		is_faux_incident="${input.is_faux_incident ? 1 : 0}",
-		description="${input.description}",
-		description_contournement="${input.description_contournement}",
-		cause="${input.cause}",
-		origine="${input.origine}",
-		plan_action="${input.plan_action}",
-		action_retablissement="${input.action_retablissement}",
-		entite_responsable_id="${input.entite_responsable}"
-	WHERE id ="${input.incident_id}"
+		statut_id=$statut_id,
+		priorite_id=$priorite_id,
+		is_contournement=$is_contournement,
+		is_faux_incident=$is_faux_incident,
+		description=$description,
+		description_contournement=$description_contournement,
+		cause=$cause,
+		origine=$origine,
+		plan_action=$plan_action,
+		action_retablissement=$action_retablissement,
+		entite_responsable_id=$entite_responsable
+	WHERE id =$incident_id;
 	`
 }
 
@@ -864,34 +856,35 @@ VALUES
 
 /////// UPDATE  COSIP /////////////
 ////////////////////////
-export function UpdateCosip(input){
+export function UpdateCosip(){
 	return `
 	UPDATE cosip
 	SET 
-		plan_action="${input.plan_action}",
-		cause_racine_id="${input.cause_racine_id}",
-		comment="${input.commentaire}",
-		cosip_resume="${input.cosip_resume}"
-	WHERE id ="${input.cosip_id}"
+		plan_action=$plan_action,
+		cause_racine_id=$cause_racine_id,
+		comment=$comment,
+		cosip_resume=$cosip_resume,
+		semaine_cosip=$semaine_cosip
+	WHERE id =$cosip_id
 	`
 }
-export function UpdateCosiptoIncident(input){
+export function UpdateCosiptoIncident(){
 	return `
 	UPDATE incident
 	SET
-		cosip_id="${input.cosip_id}",
-		statut_id="${input.statut_id}",
-		priorite_id="${input.priorite_id}",
-		is_contournement="${input.is_contournement ? 1 : 0}",
-		is_faux_incident="${input.is_faux_incident ? 1 : 0}",
-		description="${input.description}",
-		description_contournement="${input.description_contournement}",
-		cause="${input.cause}",
-		origine="${input.origine}",
-		plan_action="${input.plan_action}",
-		entite_responsable_id="${input.entite_responsable_id}",
-		action_retablissement="${input.action_retablissement}"
-	WHERE id ="${input.incident_id}"
+		cosip_id=$cosip_id,
+		statut_id=$statut_id,
+		priorite_id=$priorite_id,
+		is_contournement=$is_contournement,
+		is_faux_incident=$is_faux_incident,
+		description=$description,
+		description_contournement=$description_contournement,
+		cause=$cause,
+		origine=$origine,
+		plan_action=$plan_action,
+		action_retablissement=$action_retablissement,
+		entite_responsable_id=$entite_responsable
+	WHERE id =$incident_id;
 	`
 }
 ////////////////////////////////////////
@@ -1103,20 +1096,8 @@ From probs;
 ///////////////////////////////////////
 /////////////// Stats /////////////////
 ///////////////////////////////////////
-export function getOrigineIncMaj(){
-	return `
-SELECT inc_par_mois, nom, count(nom) as nombre
-FROM (
-	SELECT date(incident_impact_enseigne.date_debut, 'start of month') as inc_par_mois, incident_entite_responsable.nom
-	FROM incident
-		JOIN incident_entite_responsable ON incident.entite_responsable_id = incident_entite_responsable.id
-		JOIN incident_impact_enseigne ON incident.id = incident_impact_enseigne.incident_id
-		JOIN enseigne ON incident_impact_enseigne.enseigne_id = enseigne.id
-	WHERE enseigne.nom = 'BDDF' AND incident_impact_enseigne.gravite_averee = 'Elevé' AND date(incident_impact_enseigne.date_debut) > date('now', '-12 month')
-)
-GROUP BY inc_par_mois, nom	
-`
-}
+
+
 
 
 

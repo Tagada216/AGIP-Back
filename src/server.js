@@ -37,7 +37,6 @@ import {
 	deleteIncident,
 	insertMainCourante,
 	insertImpactEnseigne,
-	statOrigineIncidentsMajeurs,
 	createMainCouranteAgence,
 	updateMainCouranteAgence,
 	getCosipById,
@@ -248,9 +247,7 @@ app.get("/api/probs/coper", (req,res) =>{
 ////////////////////////////////////////
 //Chemins d'obtention des stats
 ////////////////////////////////////////
-app.get("/api/stat/orig-inc-maj", (req,res) =>{
-	statOrigineIncidentsMajeurs(res)
-})
+
 
 app.get("/api/stat/priorites", (req,res) =>{
 	statGetPriorite(res)
