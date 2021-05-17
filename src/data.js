@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken")
 const config = require("./config")
 const tokenList = {}
 
+
 ////////////////////////////////////////
 // Initialisation de la base de données.
 ////////////////////////////////////////
