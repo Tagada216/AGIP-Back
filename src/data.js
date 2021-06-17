@@ -27,7 +27,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD - COSIP-AuthTest.sdb",
+	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD - COSIP-AuthTest - Copie.sdb",
 	define: {
 		timestamps: false
 	}
@@ -43,7 +43,6 @@ var appCache
 log("\n" + chalk.yellow("Mise en cache des applications"))
 sequelize.query(queries.AllApplications()).then(([results]) => {
 	appCache = results
-
 })
 log("\n" + chalk.yellow("Mise en cache des applications"))
 
@@ -113,8 +112,7 @@ export function getIdcosip(res, id) {
 
 export function getCosipByWeek(res, week) {
 	sequelize.query(queries.getCosipByWeek(), {
-		bind: 
-		{
+		bind: {
 			semaine_cosip: week
 		},
 		type: sequelize.QueryTypes.SELECT
@@ -214,13 +212,13 @@ export function getCosipFormated(res) {
 	})
 }
 
- 
-export function getCosipById(res, id) {
-    sequelize.query(queries.getCosipById(id)).then(([results]) => {
-        res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
-    })
-} 
- 
+
+export function getCosipById(res, id) {
+	sequelize.query(queries.getCosipById(id)).then(([results]) => {
+		res.json(JSON.parse(JSON.stringify(results).replace(/\u0092/g, "'")))
+	})
+}
+
 
 // export function getCosipById(res, id) {
 // 	sequelize.query(queries.getCosipById(), {
@@ -237,18 +235,19 @@ export function getCosipById(res, id) {
 export async function createMainCourante(res, input) {
 	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 	// On insert dans la table incident en premier (clés étrangères obligent)
-	const insertResult = await sequelize.query(queries.CreationIncident(), {
+	const insertResult = await sequelize.query(queries.CreationIncident(input), {
 		bind: {
 			description: input.description,
 			statutId: input.statut_id,
 			priopriteId: input.priorite_id,
 			description_contournement: input.description_contournement
 		},
-		type: sequelize.QueryTypes.SELECT,
-		type: sequelize.DataTypes.STRING
+		type: Sequelize.QueryTypes.SELECT,
+		type: Sequelize.DataTypes.STRING
 	})
-	// On récupère l'id d el'incident nouvellement crée
-	const idIncident = insertResult[1].lastID
+	log("\n" + chalk.yellow(insertResult[0]))
+	// On récupère l'id de l'incident nouvellement crée
+	const idIncident = insertResult[0]
 
 	log(chalk.blue("\n" + "L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
 
@@ -263,14 +262,14 @@ export async function createMainCourante(res, input) {
 	// Insertion des applications impactées
 	log("\n" + chalk.yellow("Insertion des applications impactées"))
 	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee,idIncident), {
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident), {
 			bind: {
-				codeIrt: application.code_irt,
-				trigrammeApp: application.trigramme,
-				displayNameApp: application.display_name
+				codeIrt: appImpactee.code_irt,
+				trigrammeApp: appImpactee.trigramme,
+				displayNameApp: appImpactee.display_name
 			},
-			type: sequelize.QueryTypes.SELECT,
-			type: sequelize.DataTypes.STRING
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
 		})
 	}
 
@@ -289,11 +288,11 @@ export async function createMainCouranteAgence(res, input) {
 			prioprite_id: input.priorite_id,
 			is_agence: input.is_agence
 		},
-		type: sequelize.QueryTypes.SELECT,
-		type: sequelize.DataTypes.STRING
+		type: Sequelize.QueryTypes.SELECT,
+		type: Sequelize.DataTypes.STRING
 	})
 	// On récupère l'id d el'incident nouvellement crée
-	const idIncident = insertResult[1].lastID
+	const idIncident = insertResult[0].lastID
 
 	log(chalk.blue("\n" + "L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
 
@@ -308,8 +307,8 @@ export async function createMainCouranteAgence(res, input) {
 			reference: input.reference,
 			incident_id: idIncident
 		},
-		type: sequelize.QueryTypes.SELECT,
-		type: sequelize.DataTypes.STRING
+		type: Sequelize.QueryTypes.SELECT,
+		type: Sequelize.DataTypes.STRING
 	})
 
 	// Insertion des applications impactées
@@ -322,8 +321,8 @@ export async function createMainCouranteAgence(res, input) {
 				trigrammeApp: application.trigramme,
 				displayNameApp: application.display_name
 			},
-			type: sequelize.QueryTypes.SELECT,
-			type: sequelize.DataTypes.STRING
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
 		})
 	}
 
@@ -348,7 +347,7 @@ export async function insertMainCourante(res, input) {
 		}
 	})
 	// On récupère l'id d el'incident nouvellement crée
-	const idIncident = insertResult[1].lastID
+	const idIncident = insertResult[0].lastID
 
 	log(chalk.blue("\n" + "L'id de l'incident nouvellement inseré est ") + chalk.underline.green(idIncident))
 
@@ -363,16 +362,15 @@ export async function insertMainCourante(res, input) {
 	// Insertion des applications impactées
 	log("\n" + chalk.yellow("Insertion des applications impactées"))
 	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee),
-		{
+		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee), {
 			bind: {
 				idIncident: idIncident,
 				codeIrt: application.code_irt,
 				trigrammeApp: application.trigramme,
 				displayNameApp: application.display_name
 			},
-			type: sequelize.QueryTypes.SELECT,
-			type: sequelize.DataTypes.STRING
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
 		})
 	}
 
@@ -666,18 +664,43 @@ export async function updateMainCourante(res, input) {
 
 }
 
-export async function createAgence(input) {
-
+export async function createAgence(input, res) {
+	log("\n" + chalk.green(input.reference));
 	try {
 		log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 
 		log("\n" + chalk.yellow("Insertion des incidents agence"))
-		const createNewIncidentAgence = await sequelize.query(queries.CreationIncidentAgence(input))
+		const createNewIncidentAgence = await sequelize.query(queries.CreationIncidentAgence(), {
+			bind: {
+				description: input.description,
+				cause: input.cause,
+				statut_id: input.statut_id,
+				priorite_id: input.priorite_id,
+				is_agence: input.is_agence
+			},
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
+		})
 
 		log("\n" + chalk.yellow("création de l'id"))
-		const idIncident = createNewIncidentAgence[1].lastID
-		const createRef = queries.CreationReferencesAgence(input, idIncident)
-		const createImpactEnseigne = queries.CreationImpactEnseignesAgence(input, idIncident)
+		const idIncident = createNewIncidentAgence[0]
+		log("\n" + chalk.green(idIncident));
+		const createRef = await sequelize.query(queries.CreationReferencesAgence(), {
+			bind: {
+				reference: input.reference,
+				incident_id: idIncident
+			}
+		})
+		const createImpactEnseigne = await sequelize.query(queries.CreationImpactEnseignesAgence(input), {
+			bind: {
+				idIncident: idIncident,
+				enseigne_impactee: input.enseigne_impactee,
+				description_impact: input.description_impact,
+    			nbUtilisateur: input.nbUtilisateur
+			},
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
+		})
 
 
 		// Insertion des références
@@ -700,18 +723,18 @@ export async function createAgence(input) {
 
 	} catch (error) {
 		return res.status(500).json({
-			message: 'Une erreur est survenue .'
+			message: "Une erreur est survenue ."
 		});
 	}
 
 }
 
-export async function updateAgence(res) {
+export async function updateAgence(input, res) {
 	try {
 		log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
 
-		const updateIncident = queries.UpdateIncidentAgence(res)
-		const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigneAgence(res)
+		const updateIncident = queries.UpdateIncidentAgence(input)
+		const updateIncidentImpactEnseigne = queries.UpdateIncidentImpactEnseigneAgence(input)
 
 
 		// Mise à jour des incidents
@@ -874,8 +897,10 @@ export async function selectMatricule(matricule, res) {
 				"token": token,
 				"refreshToken": refreshToken,
 				"user": userId.id,
+				"role": userId.roleId,
 				"auth": true
 			}
+			console.log(response.role)
 			tokenList[refreshToken] = response
 			res.status(200).json(response);
 			// res.status(200).send({auth:true,token:token, user: userId.id})

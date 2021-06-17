@@ -598,7 +598,7 @@ VALUES(
 
 
 
-export function CreationReferencesAgence(input, idIncident) {
+export function CreationReferencesAgence() {
 	return `
 INSERT INTO incident_reference (
 	reference, 
@@ -612,7 +612,7 @@ VALUES(
 
 
 
-export function CreationImpactEnseignesAgence(input, idIncident) {
+export function CreationImpactEnseignesAgence(input) {
 	return `
 INSERT INTO incident_impact_enseigne (
 	incident_id,
@@ -623,12 +623,12 @@ INSERT INTO incident_impact_enseigne (
 	nombre_utilisateurs
 	)
 VALUES(
-	${idIncident},
-	${input.enseigne_impactee},
+	$idIncident,
+	$enseigne_impactee,
 	datetime("${input.date_debut}","localtime"),
 	datetime("${input.date_fin}","localtime"),
-	"${input.description_impact}",
-    ${input.nbUtilisateur}
+	$description_impact,
+    $nbUtilisateur
 );
 `
 }
