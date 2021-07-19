@@ -28,7 +28,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD_Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD_Dev.sdb",
+	storage: "C:/Users/A487365/Documents/TDC-Development/BDD/TDC_AGIPROS_BDD - COSIP-AuthTest.sdb",
 	define: {
 		timestamps: false
 	}
@@ -264,18 +264,32 @@ export async function createMainCourante(res, input) {
 	await sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
 
 	// Insertion des applications impactées
-	// log("\n" + chalk.yellow("Insertion des applications impactées"))
-	// for (const appImpactee of input.application_impactee) {
-	// 	await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident), {
-	// 		bind: {
-	// 			codeIrt: appImpactee.code_irt,
-	// 			trigrammeApp: appImpactee.trigramme,
-	// 			displayNameApp: appImpactee.display_name
-	// 		},
-	// 		type: Sequelize.QueryTypes.SELECT,
-	// 		type: Sequelize.DataTypes.STRING
-	// 	})
-	// }
+	log("\n" + chalk.yellow("Insertion des applications impactées"))
+
+	if(input.is_imported){
+		console.log("Une application importé")
+		await sequelize.query(queries.AddImportedApp(idIncident), {
+			bind:{
+				displayNameApp: input.application_impactee
+			},
+			type: Sequelize.QueryTypes.SELECT,
+			type: Sequelize.DataTypes.STRING
+		})
+	}else{
+		for (const appImpactee of input.application_impactee) {
+			await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident), {
+				bind: {
+					codeIrt: appImpactee.code_irt,
+					trigrammeApp: appImpactee.trigramme,
+					displayNameApp: appImpactee.display_name
+				},
+				type: Sequelize.QueryTypes.SELECT,
+				type: Sequelize.DataTypes.STRING
+			})
+		}
+	}
+
+
 
 	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
 	res.sendStatus(200)

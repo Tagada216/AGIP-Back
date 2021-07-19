@@ -83,7 +83,8 @@ SELECT incident.id,
 	incident_statut.id as 'statut', incident_impact_enseigne.date_fin as 'date_fin', 
 	incident_impact_enseigne.description_impact as 'description_impact', incident.cause as 'cause', 
 	incident.origine as 'origine', incident.action_retablissement as 'action_retablissement',
-	incident.plan_action as 'plan_action', 
+	incident.plan_action as 'plan_action',
+	incident.is_imported,
 	incident_gravite.class as "classification",
 	replace(group_concat(DISTINCT application.trigramme || '-' || 
 	application.code_irt || ' : ' || 
@@ -477,6 +478,13 @@ INSERT INTO incident_application_impactee
 `
 }
 
+export function AddImportedApp(idIncident){
+	return `
+	INSERT INTO incident_application_impactee
+		SELECT ${idIncident}, 'IMP_' || (max(CAST(CI AS INTEGER))+1), "IMP", $displayNameApp
+		FROM (SELECT replace(code_irt, 'IMP_', '') AS 'CI' FROM application WHERE code_irt LIKE 'IMP_%')
+	`
+}
 
 export function DeleteIncidentApplicationImpactee()
 {
