@@ -9,6 +9,7 @@ import {
 } from "sequelize"
 
 
+
 // Petite ligne permettant d'utiliser log() au lieu de console.log
 const log = console.log
 
@@ -27,7 +28,7 @@ const sequelize = new Sequelize({
 	//Local : "C:/Users/A487365/Documents/BDD/TDC_AGIPROS_BDD.sdb"
 	// DEV : "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Dev.sdb"
 	// Master: "V:/ITIM/GSI/TDC/PROBLEMES/07-ToolBoxTDC/BDD/TDC_AGIPROS_BDD-Master.sdb"
-	storage: "C:/Users/A487423/OneDrive - GROUP DIGITAL WORKPLACE/Desktop/TDC_AGIPROS_BDD - COSIP-AuthTest - Copie.sdb",
+	storage: "C:/Users/A487365/Documents/TDC-Development/BDD/TDC_AGIPROS_BDD - COSIP-AuthTest.sdb",
 	define: {
 		timestamps: false
 	}
@@ -233,10 +234,13 @@ export function getCosipById(res, id) {
 
 
 export async function createMainCourante(res, input) {
-	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"))
-	// On insert dans la table incident en premier (clés étrangères obligent)
+	log("\n" + chalk.yellow("--- DEBUT DE L'INSERTION ---"));
+	console.log(input);
+	//On insert dans la table incident en premier (clés étrangères obligent)
+
 	const insertResult = await sequelize.query(queries.CreationIncident(input), {
 		bind: {
+			is_imported: input.is_imported,
 			description: input.description,
 			statutId: input.statut_id,
 			priopriteId: input.priorite_id,
@@ -260,18 +264,18 @@ export async function createMainCourante(res, input) {
 	await sequelize.query(queries.CreationImpactEnseignes(input, idIncident))
 
 	// Insertion des applications impactées
-	log("\n" + chalk.yellow("Insertion des applications impactées"))
-	for (const appImpactee of input.application_impactee) {
-		await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident), {
-			bind: {
-				codeIrt: appImpactee.code_irt,
-				trigrammeApp: appImpactee.trigramme,
-				displayNameApp: appImpactee.display_name
-			},
-			type: Sequelize.QueryTypes.SELECT,
-			type: Sequelize.DataTypes.STRING
-		})
-	}
+	// log("\n" + chalk.yellow("Insertion des applications impactées"))
+	// for (const appImpactee of input.application_impactee) {
+	// 	await sequelize.query(queries.CreationApplicationsImpactees(appImpactee, idIncident), {
+	// 		bind: {
+	// 			codeIrt: appImpactee.code_irt,
+	// 			trigrammeApp: appImpactee.trigramme,
+	// 			displayNameApp: appImpactee.display_name
+	// 		},
+	// 		type: Sequelize.QueryTypes.SELECT,
+	// 		type: Sequelize.DataTypes.STRING
+	// 	})
+	// }
 
 	log("\n" + chalk.green("--- FIN DE L'INSERTION (SUCCES) ---"))
 	res.sendStatus(200)

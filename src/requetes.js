@@ -223,6 +223,7 @@ ORDER BY incident.id desc;
 export function CreationIncident(input) {
 	return `
 INSERT INTO incident(
+	is_imported,
 	description, 
 	statut_id, 
 	priorite_id, 
@@ -230,6 +231,7 @@ INSERT INTO incident(
 	description_contournement,
 	is_faux_incident)
 VALUES(
+	$is_imported,
 	$description,
 	$statutId,
 	$priopriteId,
