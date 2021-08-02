@@ -5,8 +5,7 @@ module.exports = (sequelize) => {
         incident_id:{
             type: DataTypes.INTEGER,
             allowNull: false,
-            primaryKey: true,
-            unique: true
+            primaryKey: true
         },
         Application_code_irt :{
             type: DataTypes.STRING(25)

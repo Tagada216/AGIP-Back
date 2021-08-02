@@ -6,8 +6,7 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true,
-            unique: true
+            autoIncrement: true
         },
         description_impact:{
             type: DataTypes.TEXT

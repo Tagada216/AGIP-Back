@@ -6,8 +6,7 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true,
-            unique: true
+            autoIncrement: true
         },
         is_cosip:{
             type: DataTypes.BOOLEAN,

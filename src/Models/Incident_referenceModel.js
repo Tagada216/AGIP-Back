@@ -7,12 +7,10 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true,
-            unique: true
+            autoIncrement: true
             },
         reference:{
-            type: DataTypes.STRING(25),
-            unique: true
+            type: DataTypes.STRING(25)
         },
         incident_id:{
             type: DataTypes.INTEGER,
