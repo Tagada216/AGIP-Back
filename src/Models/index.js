@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------
 
 const {Sequelize} = require('sequelize');
-
+const Op = Sequelize.Op;
 
 require('dotenv').config();
 
@@ -60,8 +60,8 @@ incident_application_impactee.belongsTo(application, {foreignKey:'Application_co
 
 // _________________________ Jointure Cosip _________________
 // Incident et Cosip 
-cosip.hasOne(incident, {foreignKey:'cosip_id', sourceKey:'id'});
-incident.belongsTo(cosip, {foreignKey:'cosip_id', targetKey:'id'});
+incident.hasOne(cosip, {foreignKey:'id', sourceKey:'cosip_id'});
+cosip.belongsTo(incident, {foreignKey:'id', targetKey:'cosip_id'});
 
 
 

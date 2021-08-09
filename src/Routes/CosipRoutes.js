@@ -4,4 +4,6 @@ const CosipCtrl = require('../Controllers/CosipCtrl');
 
 router.get('/', CosipCtrl.getCosip);
 
+router.get('/:id',CosipCtrl.getOneIncidentCosip);
+
 module.exports = router;
