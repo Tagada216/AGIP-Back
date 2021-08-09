@@ -22,7 +22,7 @@ const sequelize = new Sequelize({
 	}
 });
 
-// -------------  Définition des clés étrangéres des tables ----------------------- 
+// -------------  Récupération des models pour créer les clés étrangères ----------------------- 
 
 const incident = require('./IncidentModel.js')(sequelize);
 const incident_reference = require('./Incident_referenceModel.js')(sequelize);
@@ -30,7 +30,7 @@ const incident_application_impactee = require('./Incident_application_impacteeMo
 const application = require('./ApplicationModel.js')(sequelize);
 const incident_impact_Enseigne = require('./Incident_impact_enseigneModel.js')(sequelize);
 const Enseigne = require('./EnseigneModel.js')(sequelize);
-const Cosip = require('./CosipModel.js')(sequelize);
+const cosip = require('./CosipModel.js')(sequelize);
 
 
 
@@ -60,7 +60,9 @@ incident_application_impactee.belongsTo(application, {foreignKey:'Application_co
 
 // _________________________ Jointure Cosip _________________
 // Incident et Cosip 
-Cosip.hasOne(incident, {foreignKey:'cosip_id', sourceKey:'id'});
-incident.belongsTo(Cosip, {foreignKey:'cosip_id', targetKey:'id'});
+cosip.hasOne(incident, {foreignKey:'cosip_id', sourceKey:'id'});
+incident.belongsTo(cosip, {foreignKey:'cosip_id', targetKey:'id'});
+
+
 
 module.exports = sequelize

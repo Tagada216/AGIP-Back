@@ -1,6 +1,5 @@
 const {DataTypes} = require ("sequelize");
 
-
 module.exports = (sequelize) => {
     return sequelize.define('incident_reference', {
         id:{
@@ -13,12 +12,12 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING(25)
         },
         incident_id:{
-            type: DataTypes.INTEGER,
-            allowNull: false
+            type: DataTypes.INTEGER
         }
-    }, {
-        timestamps: false,
-        freezeTableName: true,
-        tableName: 'incident_reference'
-    });
+        }, {
+            timestamps: false,
+            freezeTableName: true,
+            tableName: 'incident_reference'
+    })
+
 }

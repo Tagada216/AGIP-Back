@@ -6,5 +6,5 @@ exports.getAllImpactEnseigne = (req, res, next) => {
     sequelize.models.incident_impact_enseigne.findAll()
     .then(impact_enseigne => {
         res.status(200).json(impact_enseigne)
-    }).catch(err => console.log(err));
+    }).catch(err => {res.status(404).send(err.toString())});
 };

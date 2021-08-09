@@ -6,7 +6,7 @@ exports.getAllIncident = (req, res, next) => {
     sequelize.models.incident.findAll()
         .then(incident => {
             res.status(200).json(incident)
-        }).catch(err => console.log(err));
+        }).catch(err => {res.status(404).send(err.toString())});
 };
 
 // Création d'un incident  

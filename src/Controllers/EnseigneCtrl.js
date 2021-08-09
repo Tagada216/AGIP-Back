@@ -6,5 +6,5 @@ exports.getAllEnseignes = (req, res , next) => {
     sequelize.models.enseigne.findAll()
     .then(enseigne => {
         res.status(200).json(enseigne)
-    }).catch(err => console.log(err));
+    }).catch(err => {res.status(404).send(err.toString())});
 };

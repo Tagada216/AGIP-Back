@@ -1,13 +1,12 @@
 const sequelize = require('../Models/index.js');
 
 
-
 //Récupérer les incidents de la main courante
 exports.getMaincourante = (req, res, next) => {
-    sequelize.models.incident.findAll({include:[sequelize.models.incident_reference]})
+    sequelize.models.incident.findAll({include:[sequelize.models.incident_reference, sequelize.models.incident_application_impactee, sequelize.models.incident_impact_enseigne ]})
     .then (incidents => {
         res.status(200).json(incidents)
-    }).catch(err => console.log(err));
+    }).catch(err => {res.status(404).send(err.toString())});
 
 };
 

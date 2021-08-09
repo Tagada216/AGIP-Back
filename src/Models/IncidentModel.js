@@ -1,5 +1,6 @@
 const {DataTypes} = require ("sequelize");
 
+
 module.exports = (sequelize) => {
     return sequelize.define('incident',{
         id:{
@@ -82,10 +83,13 @@ module.exports = (sequelize) => {
         },
         cause_racine_id:{
             type: DataTypes.INTEGER
+        },
+        cosip_id:{
+            type :DataTypes.INTEGER
         }
     }, {
         timestamps: false,
         freezeTableName: true,
         tableName: 'incident'
-    });
+    })
 }

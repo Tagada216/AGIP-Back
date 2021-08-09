@@ -6,5 +6,5 @@ exports.getAllApplications = (req, res, next) =>{
     sequelize.models.application.findAll()
         .then(application => {
             res.status(200).json(application)
-        }).catch(err => console.log(err));
+        }).catch(err => {res.status(404).send(err.toString())});
 };
