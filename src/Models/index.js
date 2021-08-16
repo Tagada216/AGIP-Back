@@ -22,7 +22,7 @@ const sequelize = new Sequelize({
 	}
 });
 
-// -------------  Récupération des models pour créer les clés étrangères ----------------------- 
+// -------------  Récupération des models pour créer les clés étrangères / Même si ils ne sont pas utilisés les models doivent être initialisés pour être récupérés ----------------------- 
 
 const incident = require('./IncidentModel.js')(sequelize);
 const incident_reference = require('./Incident_referenceModel.js')(sequelize);
@@ -31,8 +31,8 @@ const application = require('./ApplicationModel.js')(sequelize);
 const incident_impact_Enseigne = require('./Incident_impact_enseigneModel.js')(sequelize);
 const Enseigne = require('./EnseigneModel.js')(sequelize);
 const cosip = require('./CosipModel.js')(sequelize);
-
-
+const statuts = require('./Incident_statutModel.js')(sequelize);
+const priorites = require('./Incident_prioriteModel.js')(sequelize);
 
 // -----------------------  Jointure  Main courante --------------------
 
@@ -63,6 +63,8 @@ incident_application_impactee.belongsTo(application, {foreignKey:'Application_co
 incident.hasOne(cosip, {foreignKey:'id', sourceKey:'cosip_id'});
 cosip.belongsTo(incident, {foreignKey:'id', targetKey:'cosip_id'});
 
+cosip.hasOne(incident, {foreignKey:'cosip_id', sourceKey:'id'} );
+incident.belongsTo(cosip, {foreignKey:'cosip_id', sourceKey:'id'});
 
 
 module.exports = sequelize

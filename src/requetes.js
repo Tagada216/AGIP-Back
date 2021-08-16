@@ -122,19 +122,6 @@ ORDER BY incident.id asc;
 }
 
 
-export function Applications(keyword) {
-	return `
-SELECT application.trigramme || '-' || application.code_irt || ' : ' || coalesce(libelle_court, '') || ' (' || coalesce(nom, '') || ')' || coalesce('[' || nom_usage || ']', '')  as 'display_name'
-FROM application left join application_alias
-	on application.code_irt = application_alias.code_irt 
-	and application.trigramme = application_alias.trigramme
-WHERE application.code_irt like "%${keyword}%"
-	or application.trigramme like "%${keyword}%"
-	or libelle_court like "%${keyword}%"
-	or nom like "%${keyword}%"
-	or nom_usage like "%${keyword}%";
-`
-}
 
 
 export function AllApplications() {

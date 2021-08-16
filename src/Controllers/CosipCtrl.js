@@ -11,7 +11,7 @@ exports.getCosip = (req, res, next) => {
         cosip_id :{[Op.not]:null}
     }})
     .then( cosip => {
-        res.status(200).json(cosip)
+        res.status(200).json(cosip);
     }).catch(err => {res.status(404).send(err.toString())});
 
 };
@@ -26,3 +26,23 @@ exports.getOneIncidentCosip = (req, res, next) =>{
     }).catch(err => {res.status(404).send(err.toString())});
     
 };
+
+// Récupération des incidents au cosip en fonction de la semaine souhaité 
+exports.getCosipByWeek = (req, res , next) => {
+    const week = req.params.week
+    sequelize.models.incident.findAll({include:[sequelize.models.cosip, sequelize.models.incident_reference, sequelize.models.incident_application_impactee, sequelize.models.incident_impact_enseigne], where:{
+        cosip_id :{[Op.not]:null}
+    }})
+    .then( cosip => {
+            const allCosip = cosip
+            let cosipWeek =[]
+            allCosip.forEach(el => {
+                if (el.cosip.semaine_cosip === week){
+                    cosipWeek.push(el)
+                }
+            });
+            res.status('200').json(cosipWeek)
+    }).catch(err => {res.status(404).send(err.toString())});
+
+};
+
