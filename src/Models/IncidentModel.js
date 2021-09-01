@@ -87,9 +87,11 @@ module.exports = (sequelize) => {
         cosip_id:{
             type :DataTypes.INTEGER
         }
-    }, {
+    },
+    {
         timestamps: false,
         freezeTableName: true,
         tableName: 'incident'
-    })
+    }
+)
 }
