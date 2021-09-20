@@ -33,6 +33,14 @@ const Enseigne = require('./EnseigneModel.js')(sequelize);
 const cosip = require('./CosipModel.js')(sequelize);
 const statuts = require('./Incident_statutModel.js')(sequelize);
 const priorites = require('./Incident_prioriteModel.js')(sequelize);
+const probleme = require('./ProblemeModel.js')(sequelize);
+const problemeDomaine = require('./ProblemeDomaineModel.js')(sequelize);
+const problemeSousDomaine = require('./ProblemeSousDomaineModel.js')(sequelize);
+const problemeType = require('./ProblemeTypeModel.js')(sequelize);
+const problemeWorkOrder = require('./ProblemeWorkOrderModel.js')(sequelize);
+const problemeWorkCatAction = require('./ProblemeWorkCatActionModel.js')(sequelize);
+const problemeWorkTypeAction = require('./ProblemeWorkOrderTypeActionModel.js')(sequelize);
+const problemeWorkStat = require('./ProblemeWorkStatModel.js')(sequelize);
 
 
 // Hooks (Permet de faire des qaction sur les tables avant ou après la création d'un élément etc... )

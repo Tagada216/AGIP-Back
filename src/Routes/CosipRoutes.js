@@ -8,4 +8,6 @@ router.get('/:id',CosipCtrl.getOneIncidentCosip);
 
 router.get('/week/:week', CosipCtrl.getCosipByWeek);
 
+router.post('/', CosipCtrl.addIncidentCosip);
+
 module.exports = router;
