@@ -72,4 +72,16 @@ app.use('/api/impact/enseigne', incidentImpactEnseigne);
 const cosip = require('./Routes/CosipRoutes');
 app.use('/api/cosip', cosip);
 
+//Gravite 
+const gravite = require('./Routes/GraviteRoutes');
+app.use('/api/gravite', gravite);
+
+//Cause racine 
+const cause = require('./Routes/CauseRacineRoutes');
+app.use('/api/cause-racine', cause);
+
+//Entite Responsable 
+const entiteResp = require('./Routes/EntiteResposableRoutes');
+app.use('/api/entite-responsable', entiteResp);
+
 module.exports = app; 
