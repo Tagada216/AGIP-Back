@@ -41,8 +41,9 @@ const problemeWorkOrder = require('./ProblemeWorkOrderModel.js')(sequelize);
 const problemeWorkCatAction = require('./ProblemeWorkCatActionModel.js')(sequelize);
 const problemeWorkTypeAction = require('./ProblemeWorkOrderTypeActionModel.js')(sequelize);
 const problemeWorkStat = require('./ProblemeWorkStatModel.js')(sequelize);
-
-
+const gravite = require('./GraviteModel.js')(sequelize);
+const causeRacine = require('./CauseRacineModel.js')(sequelize);
+const incident_entite_responsable = require('./EntiteResponsableModel')(sequelize);
 // Hooks (Permet de faire des qaction sur les tables avant ou après la création d'un élément etc... )
 
 
