@@ -2,10 +2,14 @@ const {DataTypes} = require("sequelize");
 
 module.exports = (sequelize) => {
     return sequelize.define('incident_application_impactee', {
-        incident_id:{
+        id:{
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true
+        },
+        incident_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         },
         Application_code_irt :{
             type: DataTypes.STRING(25)

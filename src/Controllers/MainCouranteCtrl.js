@@ -7,7 +7,7 @@ exports.getMaincourante = (req, res, next) => {
             include: [sequelize.models.incident_reference, sequelize.models.incident_application_impactee, sequelize.models.incident_impact_enseigne]
         })
         .then(incidents => {
-            res.status(200).json(incidents)
+            res.status(200).json(JSON.parse(JSON.stringify(incidents).replace(/\u0092/g, "'")))
         }).catch(err => {
             res.status(404).send(err.toString())
         });
@@ -173,3 +173,4 @@ exports.updateIncidentMainCourante = (req, res, next) => {
             })
         })
 };
+

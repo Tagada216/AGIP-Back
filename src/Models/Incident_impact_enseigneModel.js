@@ -2,11 +2,15 @@ const {DataTypes} = require ('sequelize');
 
 module.exports = (sequelize) => {
     return sequelize.define('incident_impact_enseigne', {
-        incident_id:{
+       id:{
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
             autoIncrement: true
+        },
+        incident_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         },
         description_impact:{
             type: DataTypes.TEXT
@@ -69,6 +73,9 @@ module.exports = (sequelize) => {
             type: DataTypes.TIME
         },
         enseigne_id : {
+            type: DataTypes.INTEGER
+        },
+        gravite_id :{
             type: DataTypes.INTEGER
         }
     },{
