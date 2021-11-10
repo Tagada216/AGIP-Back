@@ -29,7 +29,7 @@ exports.getincidentFromMainCourante = (req, res, next) => {
 
 // Ajouter un incident à la main courante 
 exports.addIncidentMainCourante = (req, res, next) => {
-
+    console.log(req.body)
     // Insertion/ création incident 
     sequelize.models.incident.create({
         ...req.body
