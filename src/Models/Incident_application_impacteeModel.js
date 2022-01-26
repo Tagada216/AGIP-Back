@@ -13,10 +13,10 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         Application_code_irt :{
-            type: DataTypes.STRING(25)
+            type: DataTypes.STRING(25),
         },
         Application_trigramme:{
-            type: DataTypes.STRING(10)
+            type: DataTypes.STRING(10),
         },
         nom_appli :{
             type: DataTypes.TEXT

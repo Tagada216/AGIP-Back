@@ -8,3 +8,16 @@ exports.getAllApplications = (req, res, next) =>{
             res.status(200).json(application)
         }).catch(err => {res.status(404).send(err.toString())});
 };
+
+exports.createOneIncident = (req, res, next) => {
+    sequelize.models.application.create({
+        ...req.body
+    }).then(() => {
+        res.status(201).json({
+            message: "Application créé"
+        });
+    }).catch(err => {
+    // res.status(406).send(err.toString())
+    console.log(err)
+    });
+};

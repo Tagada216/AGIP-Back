@@ -12,13 +12,16 @@ module.exports = (sequelize) => {
             type: DataTypes.TEXT
         },
         libelle_court:{
-            type:DataTypes.STRING(100)
+            type:DataTypes.STRING(100),
+            allowNull: true
         },
         trigramme:{
-            type: DataTypes.STRING(25)
+            type: DataTypes.STRING(25),
+            unique: false
         },
         code_irt:{
-            type: DataTypes.STRING(25)
+            type: DataTypes.STRING(25),
+            unique: false
         },
     }, {
         timestamps: false,

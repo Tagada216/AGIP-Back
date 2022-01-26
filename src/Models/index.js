@@ -22,6 +22,7 @@ const sequelize = new Sequelize({
 	}
 });
 
+
 // -------------  Récupération des models pour créer les clés étrangères / Même si ils ne sont pas utilisés les models doivent être initialisés pour être récupérés ----------------------- 
 
 const incident = require('./IncidentModel.js')(sequelize);
@@ -46,6 +47,15 @@ const causeRacine = require('./CauseRacineModel.js')(sequelize);
 const incident_entite_responsable = require('./EntiteResponsableModel')(sequelize);
 // Hooks (Permet de faire des qaction sur les tables avant ou après la création d'un élément etc... )
 
+// Synchronisation des table si elle nexiste pas 
+(async function(){
+
+    await incident_reference.sync();
+	await incident_application_impactee.sync();
+	await incident_impact_enseigne.sync();
+	await incident.sync();
+	await cosip.sync();
+})()
 
 // -----------------------  Jointure  Main courante --------------------
 
